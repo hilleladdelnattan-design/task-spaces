@@ -1,0 +1,1193 @@
+<title>מרחבי משימות</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Rubik:wght@500;600;700&display=swap">
+<style>
+/* Layout: top bar of spaces, one main view beneath, floating agent chat docked bottom-right. Calm blue-grey neutrals; each space brings its own colour. */
+:root{
+  --bg:#f5f6fb; --surface:#ffffff; --surface-2:#eceef7; --line:#dfe2ee; --fg:#1a1e33; --muted:#626a86;
+  --accent:#4a55d0; --accent-fg:#ffffff; --accent-soft:#e8eaff;
+  --ok:#2f9e6e; --danger:#d8434b;
+  --p-low:#3f9c7b; --p-medium:#3b7fc4; --p-high:#8a5cf6; --warn:#e8770e; --p-urgent:#d8434b;
+  --shadow:0 1px 2px rgba(26,30,51,.06),0 6px 20px rgba(26,30,51,.07);
+  --font:'Assistant','Segoe UI',Arial,sans-serif; --font-d:'Rubik','Assistant','Segoe UI',Arial,sans-serif;
+  direction:rtl;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12141f; --surface:#1b1e2e; --surface-2:#252a3d; --line:#2e3450; --fg:#e8eaf5; --muted:#9aa2c0;
+  --accent:#8c96ff; --accent-fg:#12141f; --accent-soft:#272c4d; --ok:#4cc190; --danger:#ef6a71;
+  --p-low:#52b995; --p-medium:#5b9fe0; --p-high:#a98bff; --warn:#f59a3c; --p-urgent:#ef6a71;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12141f; --surface:#1b1e2e; --surface-2:#252a3d; --line:#2e3450; --fg:#e8eaf5; --muted:#9aa2c0;
+  --accent:#8c96ff; --accent-fg:#12141f; --accent-soft:#272c4d; --ok:#4cc190; --danger:#ef6a71;
+  --p-low:#52b995; --p-medium:#5b9fe0; --p-high:#a98bff; --warn:#f59a3c; --p-urgent:#ef6a71;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.5;direction:rtl;padding-inline:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ic{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ic.sm{width:15px;height:15px}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:10px 16px}
+.brand{font-family:var(--font-d);font-weight:700;font-size:17px;white-space:nowrap}
+.tabs{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;padding-block:2px;scrollbar-width:thin}
+.tab{display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;white-space:nowrap;color:var(--muted);font-weight:600;border:1px solid transparent}
+.tab:hover{background:var(--surface-2)}
+.tab.on{background:var(--surface-2);color:var(--fg);border-color:var(--line)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c,var(--accent));flex:none}
+.tab-add{color:var(--accent)}
+main{max-width:1240px;margin-inline:auto;padding:22px 16px 110px}
+.pagehead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.pagehead h1{font-family:var(--font-d);font-size:24px;margin:0;display:flex;align-items:center;gap:10px}
+.pagehead .sub{color:var(--muted)}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:10px;font-weight:600;background:var(--surface);border:1px solid var(--line)}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)}
+.iconbtn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted)}
+.iconbtn:hover{background:var(--surface-2);color:var(--fg)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px}
+.seg button{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;color:var(--muted);font-weight:600}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+
+/* pills + task bits */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--surface));white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.due{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.due.over{color:var(--danger);font-weight:700}
+.due.today{color:var(--accent);font-weight:700}
+.due.slip{color:var(--warn);font-weight:700}
+.pill.warn{--c:var(--warn)}.pill.bad{--c:var(--danger)}
+.sico.bad{color:var(--danger)}
+.sico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--muted)}
+.sico.done{color:var(--ok)}
+
+/* dashboard */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.chip.off{opacity:.5}
+.chip.off .dot{background:var(--line)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;margin-bottom:26px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.panel h3{margin:0 0 10px;font-family:var(--font-d);font-size:15px;display:flex;align-items:center;gap:8px}
+.count{font-size:12px;background:var(--surface-2);color:var(--muted);padding:1px 8px;border-radius:999px}
+.trow{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:9px;cursor:pointer;min-width:0}
+.trow:hover{background:var(--surface-2)}
+.trow .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty-note{color:var(--muted);padding:10px 4px;font-size:14px}
+.sh{font-family:var(--font-d);font-size:15px;margin:0 0 12px;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:start;display:flex;flex-direction:column;gap:14px;min-width:0}
+.scard:hover{box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--c) 50%,var(--line))}
+.scard .nm{display:flex;align-items:center;gap:9px;font-family:var(--font-d);font-weight:600;font-size:17px}
+.scard .vw{margin-inline-start:auto;font-size:12px;color:var(--muted);font-weight:400;font-family:var(--font)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface-2);border-radius:10px;padding:8px 6px;text-align:center}
+.stat b{display:block;font-size:22px;font-family:var(--font-d);font-variant-numeric:tabular-nums;line-height:1.2}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.bad b{color:var(--danger)}
+
+/* kanban */
+.board{display:grid;grid-template-columns:repeat(var(--n,4),minmax(250px,1fr));gap:14px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--surface-2);border-radius:14px;padding:10px;min-height:260px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.col.over{outline:2px dashed var(--accent);outline-offset:-4px}
+.colh{display:flex;align-items:center;gap:8px;padding:4px 6px;font-weight:700}
+.colh .iconbtn{width:30px;height:30px;margin-inline-start:auto}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 12px;cursor:grab;display:flex;flex-direction:column;gap:8px;text-align:start}
+.kcard:hover{box-shadow:var(--shadow)}
+.kcard.dragging{opacity:.4}
+.kcard .ttl{font-weight:600;overflow-wrap:anywhere}
+.kcard .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kcard.isdone .ttl{text-decoration:line-through;color:var(--muted)}
+
+/* todo */
+.todo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 12px 12px;max-width:820px}
+.tg{margin-top:12px}
+.tgh{display:flex;align-items:center;gap:8px;font-family:var(--font-d);font-weight:600;font-size:14px;padding:6px 4px;color:var(--c)}
+.todorow{display:flex;align-items:center;gap:11px;padding:9px 6px;border-radius:9px;cursor:pointer;border-bottom:1px solid var(--line);min-width:0}
+.todorow:last-child{border-bottom:0}
+.todorow:hover{background:var(--surface-2)}
+.todorow .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.todorow.isdone .t{text-decoration:line-through;color:var(--muted)}
+.cb{width:22px;height:22px;border-radius:7px;border:2px solid var(--c,var(--muted));display:grid;place-items:center;flex:none;background:var(--surface)}
+.cb.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.cb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.cb:not(.on) svg{display:none}
+.togglebar{width:100%;text-align:start;padding:10px 4px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px}
+
+/* calendar */
+.calhead{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.calhead h2{font-family:var(--font-d);font-size:20px;margin:0 6px;min-width:150px}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.dow{padding:9px 6px;text-align:center;font-weight:700;font-size:13px;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+.day{min-height:112px;border-inline-start:1px solid var(--line);border-bottom:1px solid var(--line);padding:5px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0;position:relative}
+.day:nth-child(7n+8){border-inline-start:0}
+.day.out{background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))}
+.day.out .dn{color:var(--muted);opacity:.7}
+.day:hover{background:var(--accent-soft)}
+.day.over{background:var(--accent-soft);outline:2px solid var(--accent);outline-offset:-2px}
+.dn{font-size:13px;font-weight:700;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;align-self:flex-start}
+.day.now .dn{background:var(--accent);color:var(--accent-fg)}
+.ev{display:flex;align-items:center;gap:5px;font-size:12.5px;padding:2px 6px;border-radius:6px;background:color-mix(in srgb,var(--c) 17%,var(--surface));color:var(--fg);cursor:pointer;min-width:0;text-align:start;border:0;font-weight:600}
+.ev::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c);flex:none}
+.ev span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev.isdone{opacity:.55;text-decoration:line-through}
+.more{font-size:12px;color:var(--accent);font-weight:700;text-align:start;padding:1px 6px}
+.nodate{margin-top:14px;background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
+.nodate.over{border-color:var(--accent);background:var(--accent-soft)}
+.nodate h4{margin:0 0 8px;font-size:13px;color:var(--muted)}
+.nodate .evs{display:flex;gap:6px;flex-wrap:wrap}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(10,12,24,.5);z-index:50;display:grid;place-items:center;padding:16px}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:16px;width:min(560px,100%);max-height:calc(100% - 8px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mh{display:flex;align-items:center;gap:8px;padding:16px 18px 6px}
+.mh h2{margin:0;font-family:var(--font-d);font-size:18px;flex:1}
+.mb{padding:8px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld>label,.fld>.lb{font-size:13px;font-weight:700;color:var(--muted)}
+.inp{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.inp:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+textarea.inp{min-height:80px;resize:vertical}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opt{padding:7px 13px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-weight:600;display:flex;align-items:center;gap:7px}
+.opt.on{border-color:var(--c,var(--accent));background:color-mix(in srgb,var(--c,var(--accent)) 14%,var(--surface));color:var(--fg)}
+.mf{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);align-items:center;flex-wrap:wrap}
+.swatch{width:30px;height:30px;border-radius:50%;background:var(--c);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.swatch.on{box-shadow:0 0 0 2px var(--fg)}
+.viewopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vopt{border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg)}
+.vopt.on{border-color:var(--accent);background:var(--accent-soft)}
+.vopt b{font-size:14px}.vopt small{color:var(--muted);font-size:12px;line-height:1.3}
+.dayList{display:flex;flex-direction:column;gap:4px}
+.empty{text-align:center;padding:60px 16px;color:var(--muted)}
+.empty h2{font-family:var(--font-d);color:var(--fg)}
+.toast{position:fixed;bottom:calc(92px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:10px;z-index:80;font-weight:600;max-width:90%}
+
+/* agent chat */
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:40;height:56px;padding:0 20px 0 18px;border-radius:999px;background:var(--accent);color:var(--accent-fg);display:flex;align-items:center;gap:10px;font-weight:700;box-shadow:0 8px 26px rgba(40,50,160,.38)}
+.fab:hover{filter:brightness(1.08)}
+.fab .ic{width:24px;height:24px}
+.chat{position:fixed;right:20px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:45;width:min(410px,calc(100% - 24px));height:min(640px,calc(100% - 120px - env(safe-area-inset-bottom,0px)));background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 60px rgba(10,12,40,.3);display:flex;flex-direction:column;overflow:hidden}
+.chat[hidden]{display:none}
+.ch{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;background:var(--surface-2)}
+.ch .row{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;flex:none}
+.ch .nm{font-family:var(--font-d);font-weight:600;line-height:1.2}
+.ch .st{font-size:12px;color:var(--muted)}
+.scope{position:relative}
+.scopebtn{display:flex;align-items:center;gap:8px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-weight:600;font-size:13.5px}
+.scopebtn small{color:var(--muted);font-weight:400}
+.scopemenu{position:absolute;top:calc(100% + 4px);inset-inline:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:3;padding:5px;max-height:240px;overflow:auto}
+.scopemenu button{display:flex;align-items:center;gap:9px;width:100%;text-align:start;padding:8px 10px;border-radius:8px;font-weight:600}
+.scopemenu button:hover,.scopemenu button.on{background:var(--accent-soft)}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.m{max-width:88%;display:flex;flex-direction:column;gap:5px}
+.m.u{align-self:flex-start}
+.m.a{align-self:flex-end;max-width:94%}
+.bub{padding:9px 13px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.u .bub{background:var(--accent);color:var(--accent-fg);border-end-start-radius:4px}
+.m.a .bub{background:var(--surface-2);border-end-end-radius:4px}
+.act{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.act .ic{width:14px;height:14px}
+.act.ok{color:var(--ok)}
+.typing{display:inline-flex;gap:4px;padding:3px 0}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bl 1.2s infinite ease-in-out}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.confirm{border:1px solid color-mix(in srgb,var(--p-high) 55%,var(--line));background:color-mix(in srgb,var(--p-high) 8%,var(--surface));border-radius:12px;padding:11px 12px;display:flex;flex-direction:column;gap:9px}
+.confirm b{font-size:14px}
+.confirm ul{margin:0;padding-inline-start:18px;font-size:13px;color:var(--muted)}
+.confirm .bt{display:flex;gap:8px}
+.confirm .bt .btn{flex:1;justify-content:center}
+.confirm.done{opacity:.8;border-color:var(--line);background:var(--surface-2)}
+.sugg{display:flex;flex-direction:column;gap:7px;padding:0 14px 6px}
+.sugg button{text-align:start;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-weight:600;font-size:13.5px}
+.sugg button:hover{background:var(--accent-soft);border-color:var(--accent)}
+.hello{padding:14px 14px 4px;color:var(--muted);font-size:14px}
+.cf{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);align-items:flex-end}
+.cf textarea{flex:1;resize:none;max-height:110px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);line-height:1.4}
+.cf .send{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;flex:none}
+.cf .send:disabled{opacity:.45;cursor:default}
+.notice{padding:30px 16px;text-align:center;color:var(--muted)}
+
+.quick{display:flex;gap:8px;margin-bottom:16px}
+.quick .inp{flex:1;min-width:0}
+.sublist{display:flex;flex-direction:column;gap:4px}
+.subrow{display:flex;align-items:center;gap:10px;padding:4px 2px}
+.subrow .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.subrow.done .t{text-decoration:line-through;color:var(--muted)}
+.mini{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.kh{display:flex;align-items:flex-start;gap:6px}
+.kh .ttl{flex:1;min-width:0}
+.kh .iconbtn{width:30px;height:30px;margin:-4px -4px 0 0}
+.weekgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.wd{background:var(--surface-2);border-radius:10px;padding:8px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.wd.now{outline:2px solid var(--accent);outline-offset:-2px}
+.wd h4{margin:0 0 2px;font-size:13px;display:flex;justify-content:space-between;gap:6px}
+.wd .ev{width:100%}
+.wd .none{color:var(--muted);font-size:12.5px}
+.panel.wide{margin-bottom:26px}
+.mvlist{display:flex;flex-direction:column;gap:6px}
+.mvlist .opt{justify-content:flex-start;padding:12px 14px}
+.ev.slipghost{background:transparent;border:1px dashed var(--warn);color:var(--warn)}
+.ev.slipghost::before,.ev.carry::before{background:var(--warn)}
+.ev.carry{background:color-mix(in srgb,var(--warn) 20%,var(--surface));border:1px solid var(--warn)}
+.ev.dl{background:transparent;border:1px solid var(--c)}
+.ev.fail{background:color-mix(in srgb,var(--danger) 16%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 45%,transparent)}
+.ev.fail::before{background:var(--danger)}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.45}
+.today-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.stack .panel h3{margin-bottom:6px}
+.gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.gcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:11px;min-width:0}
+.gtop{display:flex;align-items:center;gap:9px}
+.gtop .nm{font-family:var(--font-d);font-weight:600;font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gtop .iconbtn{width:32px;height:32px}
+.gst{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--surface));white-space:nowrap}
+.gnum{font-family:var(--font-d);font-size:22px;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.gnum small{font-size:13px;color:var(--muted);font-family:var(--font)}
+.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--c)}
+.wkdots{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wk{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
+.wk b{min-width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.wk.hit b{background:var(--c);border-color:var(--c);color:#fff}
+.wk.part b{border-color:var(--c);color:var(--c)}
+.wk.now span{color:var(--fg);font-weight:700}
+.glog{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0}
+.glog .inp{width:118px;padding:8px 10px}
+.gmini{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:10px;cursor:pointer;text-align:start;width:100%}
+.gmini:hover{background:var(--surface-2)}
+.gmini .r{display:flex;align-items:center;gap:8px;min-width:0}
+.gmini .r .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.weeknav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.weeknav h2{font-family:var(--font-d);font-size:17px;margin:0 6px}
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.sumline{display:flex;align-items:center;gap:9px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.sumline:last-child{border-bottom:0}
+.sumline .nm{flex:1;min-width:0}
+.logrow{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid var(--line)}
+.logrow:last-child{border-bottom:0}
+.logrow .t{flex:1}
+@media (max-width:900px){.today-grid{grid-template-columns:1fr}}
+@media (max-width:700px){
+  input,select,textarea{font-size:16px}
+  .iconbtn{width:44px;height:44px}
+  .kh .iconbtn{width:40px;height:40px}
+  .tab{padding:10px 14px}
+  .todorow{padding:13px 6px}
+  .cb{width:26px;height:26px}
+  .btn{padding:10px 16px}
+  .board{scroll-snap-type:x mandatory}
+  .col{scroll-snap-align:center}
+  .scrim{align-items:end;padding:0}
+  .modal{border-radius:18px 18px 0 0;width:100%;max-height:92dvh;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .chat{height:100dvh}
+  main{padding-top:16px}
+  .brand{display:none}
+  .board{grid-template-columns:repeat(var(--n,4),78%)}
+  .day{min-height:74px;padding:3px}
+  .ev{padding:1px 4px;font-size:11px}
+  .ev::before{display:none}
+  .dow{font-size:11.5px;padding:7px 2px}
+  .viewopts{grid-template-columns:1fr}
+  .vopt{flex-direction:row;text-align:start;gap:10px;padding:10px 12px}
+  .chat{right:0;bottom:0;width:100%;height:100%;border-radius:0;border:0}
+  .fab span{display:none}.fab{padding:0;width:56px;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app" dir="rtl">
+  <header class="top">
+    <div class="brand">מרחבי משימות</div>
+    <nav class="tabs" id="tabs" aria-label="מרחבים"></nav>
+  </header>
+  <main id="view"><div class="notice">טוען…</div></main>
+  <div id="modalRoot"></div>
+  <button class="fab" id="fab" aria-label="פתיחת צ'אט עם הסוכן"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg><span>שאל את הסוכן</span></button>
+  <section class="chat" id="chat" hidden aria-label="צ'אט עם הסוכן החכם">
+    <div class="ch">
+      <div class="row">
+        <div class="avatar"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div>
+        <div style="flex:1"><div class="nm">הסוכן החכם</div><div class="st" id="chatStatus">מוכן לעזור</div></div>
+        <button class="iconbtn" id="chatClose" aria-label="סגירה"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="scope"><button class="scopebtn" id="scopeBtn" aria-haspopup="listbox"></button><div class="scopemenu" id="scopeMenu" hidden></div></div>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="sugg" id="sugg"></div>
+    <form class="cf" id="chatForm">
+      <textarea id="chatInput" rows="1" placeholder="כתוב לסוכן…" aria-label="הודעה לסוכן"></textarea>
+      <button type="submit" class="send" id="sendBtn" aria-label="שליחה"><svg class="ic" viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+  </section>
+</div>
+
+<script>
+(()=>{
+'use strict';
+document.documentElement.dir='rtl';document.documentElement.lang='he';
+
+/* ---------- constants ---------- */
+const PRI={low:{label:'נמוכה'},medium:{label:'בינונית'},high:{label:'גבוהה'},urgent:{label:'דחוף'}};
+const PRI_ORDER=['urgent','high','medium','low'];
+const STA={new:{label:'חדשה'},doing:{label:'בעבודה'},paused:{label:'בהשהייה'},done:{label:'הושלמה'},failed:{label:'נכשלה'}};
+const STA_ORDER=['new','doing','paused','done'];
+const VIEWS={kanban:{label:'קנבן',desc:'עמודות לפי סטטוס וגרירה ביניהן'},todo:{label:'רשימה',desc:'משימות עם וי, לפי עדיפות'},calendar:{label:'לוח שנה',desc:'חודש שלם לפי תאריך יעד'}};
+const REP={daily:'יומי',weekly:'שבועי',monthly:'חודשי'};
+const COLORS=['#4a55d0','#0e9f8e','#e0762b','#d6457a','#8a5cf6','#2f9bd3','#6f9a1f','#c0392b'];
+const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const DOW=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const DOWS=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+
+const P={ // icon paths
+ plus:'<path d="M12 5v14M5 12h14"/>',close:'<path d="M6 6l12 12M18 6L6 18"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+ kanban:'<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/>',
+ todo:'<path d="M9 6h12M9 12h12M9 18h12"/><path d="M3.5 6l1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/>',
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ chevR:'<path d="M9 6l6 6-6 6"/>',chevL:'<path d="M15 6l-6 6 6 6"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+ dash:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/>',
+ stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',check:'<path d="M5 12l5 5 9-10"/>',tool:'<path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.6-.6-2.6z"/>',
+ chev:'<path d="M6 9l6 6 6-6"/>',move:'<path d="M7 7h11l-3-3M17 17H6l3 3"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',repeat:'<path d="M17 2l3 3-3 3M3 11V9a4 4 0 0 1 4-4h13M7 22l-3-3 3-3M21 13v2a4 4 0 0 1-4 4H4"/>'
+};
+const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24">${P[n]}</svg>`;
+const statusIcon=s=>{
+  const b={new:'<circle cx="12" cy="12" r="8"/>',doing:'<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>',paused:'<circle cx="12" cy="12" r="8"/><path d="M10 9v6M14 9v6"/>',done:'<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',failed:'<circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6"/>'}[s];
+  return `<svg class="sico ${s==='done'?'done':s==='failed'?'bad':''}" viewBox="0 0 24 24">${b}</svg>`;
+};
+
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseD=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const todayISO=()=>iso(new Date());
+const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return iso(d)};
+const validDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&iso(parseD(s))===s;
+const fmtShort=s=>{const d=parseD(s);return `${d.getDate()} ב${MONTHS[d.getMonth()]}`};
+const dueInfo=t=>{
+  if(!t.due) return {text:'',cls:''};
+  const td=todayISO(), open=t.status!=='done';
+  if(t.due===td) return {text:'היום',cls:open?'today':''};
+  if(t.due===addDays(td,1)) return {text:'מחר',cls:''};
+  if(t.due===addDays(td,-1)) return {text:'אתמול',cls:open?'over':''};
+  return {text:fmtShort(t.due),cls:(open&&t.due<td)?'over':''};
+};
+const isOpen=t=>t.status!=='done'&&t.status!=='failed';
+const modeOf=t=>t.mode==='fixed'?'fixed':'flex';
+const isOverdue=t=>isOpen(t)&&!!t.due&&t.due<todayISO();
+const isSlipped=t=>isOpen(t)&&modeOf(t)==='flex'&&!!t.planned&&t.planned<todayISO()&&(!t.due||t.due>=todayISO());
+const labDay=s=>{const td=todayISO();return s===td?'היום':s===addDays(td,1)?'מחר':s===addDays(td,-1)?'אתמול':fmtShort(s)};
+const wkStart=s=>{const d=parseD(s);d.setDate(d.getDate()-d.getDay());return iso(d)};
+const fmtN=x=>String(Number(Number(x).toFixed(2)));
+const statePill=t=>t.status==='failed'?'<span class="pill bad">נכשלה</span>':isSlipped(t)?'<span class="pill warn">גולגלה</span>':'';
+const canPostpone=t=>isOpen(t)&&modeOf(t)==='flex'&&(!t.due||t.due>=addDays(todayISO(),1));
+function datesHtml(t){
+  const td=todayISO(),done=t.status==='done';
+  if(t.status==='failed') return `<span class="due over">${t.due?labDay(t.due):''}</span>`;
+  if(modeOf(t)==='fixed'||!t.planned){
+    if(!t.due) return '';
+    const cls=done?'':(t.due<td?'over':t.due===td?'today':'');
+    return `<span class="due ${cls}">${labDay(t.due)}</span>`;
+  }
+  const slip=isSlipped(t);
+  let h=`<span class="due ${slip?'slip':(!done&&t.planned===td?'today':'')}">${slip?'גולגלה · ':''}${labDay(t.planned)}</span>`;
+  if(t.due) h+=`<span class="due ${(!done&&t.due<td)?'over':''}">עד ${labDay(t.due)}</span>`;
+  return h;
+}
+function calEntries(ts){
+  const m={},td=todayISO();
+  const add=(k,t,kind,field)=>{if(!k)return;(m[k]=m[k]||[]).push({t,kind,field})};
+  for(const t of ts){
+    if(modeOf(t)==='fixed'){add(t.due,t,t.status==='done'?'done':t.status==='failed'?'fail':'plan','due');continue}
+    const pl=t.planned,du=t.due;
+    if(pl){
+      if(t.status==='done')add(pl,t,'done','planned');
+      else if(t.status==='failed'){if(du&&du!==pl){add(pl,t,'slipghost','planned');add(du,t,'fail','due')}else add(pl,t,'fail','planned')}
+      else{
+        if(pl>=td)add(pl,t,'plan','planned');else{add(pl,t,'slipghost','planned');if(isSlipped(t))add(td,t,'carry','planned')}
+        if(du&&du!==pl)add(du,t,'dl','due');
+      }
+    }else if(du)add(du,t,t.status==='done'?'done':t.status==='failed'?'fail':'plan','due');
+  }
+  const ord={fail:0,carry:1,plan:2,dl:3,slipghost:4,done:5};
+  Object.values(m).forEach(l=>l.sort((a,b)=>(ord[a.kind]-ord[b.kind])||priRank(a.t.priority)-priRank(b.t.priority)));
+  return m;
+}
+function evChip(e,noDrag){
+  const t=e.t,k=e.kind,drag=!noDrag&&k!=='done'&&k!=='fail';
+  const icon=k==='dl'?'⚑ ':k==='carry'?'↻ ':'';
+  return `<button class="ev ${k==='done'?'isdone':k==='plan'?'':k}" style="--c:var(--p-${t.priority})" ${drag?`draggable="true" data-field="${e.field}"`:''} data-act="open-task" data-id="${t.id}" title="${esc(t.title)}"><span>${icon}${esc(t.title)}</span></button>`;
+}
+const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());return d};
+const isTouch=()=>{try{return matchMedia('(pointer:coarse)').matches||innerWidth<700}catch(e){return innerWidth<700}};
+const subsBadge=t=>t.subs&&t.subs.length?`<span class="mini" title="תת-משימות">${ic('todo','sm')}${t.subs.filter(x=>x.d).length}/${t.subs.length}</span>`:'';
+const repBadge=t=>t.repeat&&REP[t.repeat]?`<span class="mini" title="משימה חוזרת">${ic('repeat','sm')}${REP[t.repeat]}</span>`:'';
+function nextDue(base,rep){
+  const td=todayISO();const d=parseD(base);
+  const step=()=>{if(rep==='daily')d.setDate(d.getDate()+1);else if(rep==='weekly')d.setDate(d.getDate()+7);else{const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+1);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last))}};
+  step();let n=0;while(iso(d)<=td&&n<400){step();n++}return iso(d);
+}
+const rid=()=>'t'+Math.random().toString(36).slice(2,10);
+const lsGet=(k,f)=>{try{const v=localStorage.getItem(k);return v==null?f:JSON.parse(v)}catch(e){return f}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+
+/* ---------- state ---------- */
+const S={spaces:[],tasks:[],goals:[],logs:[],loaded:{s:false,t:false,g:false,l:false},route:{type:'today'},gweek:null,showFailed:false,failTried:new Set(),failBusy:false,cal:{y:new Date().getFullYear(),m:new Date().getMonth()},
+  showDone:false,drag:null,dirty:false,db:null,sample:null};
+const spaceOf=id=>S.spaces.find(s=>s.id===id);
+const tasksOf=id=>S.tasks.filter(t=>t.spaceId===id);
+const byOrder=(a,b)=>(a.order||0)-(b.order||0);
+const sortSpaces=()=>S.spaces.sort((a,b)=>(a.order||0)-(b.order||0));
+const priRank=p=>PRI_ORDER.indexOf(p);
+
+/* ---------- data ops ---------- */
+async function createTask(d){
+  const id=rid();
+  const t={spaceId:d.spaceId,title:String(d.title||'').trim()||'משימה ללא שם',notes:d.notes||'',priority:d.priority||'medium',due:d.due||'',planned:d.planned||'',mode:d.mode==='fixed'?'fixed':'flex',status:d.status||'new',
+    completedAt:d.status==='done'?new Date().toISOString():'',prevStatus:'',repeat:d.repeat||'',subs:Array.isArray(d.subs)?d.subs:[],order:d.order||Date.now(),createdAt:new Date().toISOString()};
+  await S.db.doc('tasks/'+id).set(t);return id;
+}
+async function updateTask(id,ch){
+  const t=S.tasks.find(x=>x.id===id);const p={};
+  for(const k of Object.keys(ch)) if(ch[k]!==undefined) p[k]=ch[k];
+  if(t&&'status' in p&&p.status!==t.status){
+    if(p.status==='done'){p.completedAt=new Date().toISOString();p.prevStatus=t.status}
+    else if(t.status==='done'){p.completedAt=''}
+    if(t.status==='failed'&&p.status!=='failed'&&p.status!=='done'){const nd='due' in p?p.due:t.due;p.noFail=!!(nd&&nd<todayISO())}
+  }
+  if('due' in p&&p.due&&p.due>=todayISO()&&!('noFail' in p))p.noFail=false;
+  await S.db.doc('tasks/'+id).update(p);
+  if(t&&p.status==='done'&&t.status!=='done'){
+    const rp=p.repeat!==undefined?p.repeat:t.repeat;
+    if(rp&&REP[rp]){
+      const bd=p.due!==undefined?p.due:t.due,bp='planned' in p?p.planned:t.planned,md=('mode' in p?p.mode:t.mode)==='fixed'?'fixed':'flex';
+      let nd,np='';
+      if(md==='flex'&&bp){np=nextDue(bp,rp);const delta=Math.round((parseD(np)-parseD(bp))/86400000);nd=bd?addDays(bd,delta):''}
+      else nd=nextDue(bd||todayISO(),rp);
+      await createTask({spaceId:t.spaceId,title:p.title||t.title,notes:p.notes!==undefined?p.notes:(t.notes||''),priority:p.priority||t.priority,due:nd,planned:np,mode:md,status:'new',repeat:rp,subs:(p.subs||t.subs||[]).map(x=>({t:x.t,d:false}))});
+      toast('נוצרה המשימה החוזרת הבאה');
+    }
+  }
+}
+const deleteTask=id=>S.db.doc('tasks/'+id).delete();
+function autoFail(){
+  if(!S.db||S.failBusy||!S.loaded.t)return;
+  const td=todayISO();
+  const l=S.tasks.filter(t=>isOpen(t)&&t.due&&t.due<td&&!t.noFail&&!S.failTried.has(t.id));
+  if(!l.length)return;
+  S.failBusy=true;
+  (async()=>{for(const t of l){S.failTried.add(t.id);try{await S.db.doc('tasks/'+t.id).update({status:'failed',failedAt:new Date().toISOString()})}catch(e){}}S.failBusy=false})();
+}
+
+/* ---------- goals ---------- */
+const KINDS={count:{label:'מספר פעמים',desc:'למשל 4 אימונים בשבוע',tl:'כמה פעמים בשבוע'},sum:{label:'סך שעות',desc:'למשל 3 שעות לימוד בשבוע',tl:'כמה שעות בשבוע'},daily:{label:'ימים שהגעתי לסף',desc:'למשל לישון 7 שעות ב-4 לילות',tl:'כמה ימים בשבוע'}};
+function goalProgress(g,ws){
+  const we=addDays(ws,6),byDay={};
+  S.logs.filter(l=>l.goalId===g.id&&l.date>=ws&&l.date<=we).forEach(l=>{byDay[l.date]=(byDay[l.date]||0)+(Number(l.value)||0)});
+  const value=g.kind==='daily'?Object.values(byDay).filter(v=>v>=(Number(g.min)||0)).length:Object.values(byDay).reduce((a,b)=>a+b,0);
+  return {value,byDay};
+}
+function goalStatus(g,ws){
+  const p=goalProgress(g,ws),td=todayISO(),we=addDays(ws,6),target=Number(g.target)||1;
+  if(p.value>=target)return {k:'done',label:'הושג',c:'var(--ok)',p};
+  if(td>we)return {k:'missed',label:'לא הושג',c:'var(--danger)',p};
+  if(td<ws)return {k:'future',label:'עוד לא התחיל',c:'var(--muted)',p};
+  const daysLeft=Math.round((parseD(we)-parseD(td))/86400000)+1,need=target-p.value;
+  let k;
+  if(g.kind==='sum'){const r=(need/daysLeft)/(target/7);k=r<=1.3?'ok':r<=2.5?'risk':'hard'}
+  else k=need>daysLeft?'hard':need===daysLeft?'risk':'ok';
+  return {k,label:{ok:'בדרך',risk:'בסכנה',hard:'קשה להשיג'}[k],c:{ok:'var(--ok)',risk:'var(--warn)',hard:'var(--danger)'}[k],p,need,daysLeft};
+}
+const goalText=(g,v)=>g.kind==='sum'?`${fmtN(v)}/${fmtN(g.target)} שעות`:`${fmtN(v)}/${fmtN(g.target)} ${g.unit||(g.kind==='daily'?'ימים':'פעמים')}`;
+async function addLog(g,value,date){
+  value=Number(value);date=date||todayISO();
+  if(!(value>0)||value>1000){toast('כתוב מספר גדול מ-0');return false}
+  if(!validDate(date)){toast('תאריך לא תקין');return false}
+  if(g.kind==='daily'&&value>24){toast('עד 24 שעות');return false}
+  const rec={goalId:g.id,date,value,createdAt:new Date().toISOString()};
+  try{
+    if(g.kind==='daily')await S.db.doc('logs/'+g.id+'_'+date).set(rec);
+    else await S.db.doc('logs/l'+Math.random().toString(36).slice(2,10)).set(rec);
+    return true;
+  }catch(e){dberr(e);return false}
+}
+function logControls(g,p){
+  const td=todayISO(),cur=p.byDay[td];
+  if(g.kind==='count')return `<div class="glog"><button class="btn primary" data-act="log-add" data-id="${g.id}" data-v="1">${ic('plus','sm')}רשום פעם</button></div>`;
+  const quick=g.kind==='sum'?`<button type="button" class="btn" data-act="log-add" data-id="${g.id}" data-v="0.5">+0.5</button><button type="button" class="btn" data-act="log-add" data-id="${g.id}" data-v="1">+1</button>`:'';
+  return `<form class="glog" data-glog="${g.id}">${quick}<input class="inp" id="gi-${g.id}" type="number" inputmode="decimal" step="0.25" min="0" max="24" placeholder="${g.kind==='daily'?'שעות הלילה':'שעות'}" value="${g.kind==='daily'&&cur?fmtN(cur):''}" aria-label="כמות שעות"><button class="btn primary" type="submit">${g.kind==='daily'?'שמור להיום':'הוסף'}</button></form>`;
+}
+function weekStreak(g,ws){
+  let n=0,w=addDays(ws,-7);const born=(g.createdAt||'').slice(0,10);
+  for(let i=0;i<26;i++){const we=addDays(w,6);if(born&&we<born)break;if(goalStatus(g,w).k==='done'){n++;w=addDays(w,-7)}else break}
+  return n;
+}
+function gcard(g,ws,full){
+  const st=goalStatus(g,ws),p=st.p,td=todayISO(),cur=ws===wkStart(td),target=Number(g.target)||1;
+  const pct=Math.max(0,Math.min(100,Math.round(p.value/target*100)));
+  const dots=[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i),v=p.byDay[d]||0;const cls=g.kind==='daily'?(v>=(Number(g.min)||0)&&v>0?'hit':v>0?'part':''):(v>0?'hit':'');
+    return `<div class="wk ${cls} ${d===td?'now':''}"><b>${v?(g.kind==='count'?'✓':fmtN(v)):''}</b><span>${DOWS[i]}</span></div>`}).join('');
+  let hintTxt=g.kind==='daily'?`סף: ${fmtN(g.min)} שעות ומעלה`:'';
+  if(cur&&st.k!=='done'&&st.need>0)hintTxt=(hintTxt?hintTxt+' · ':'')+`חסר ${fmtN(st.need)}${g.kind==='sum'?' שעות':g.kind==='daily'?' ימים':' פעמים'} · נותרו ${st.daysLeft} ימים בשבוע`;
+  const stk=weekStreak(g,ws);if(stk>=2)hintTxt=(hintTxt?hintTxt+' · ':'')+`רצף ${stk} שבועות`;
+  return `<div class="gcard" style="--c:${esc(g.color)}"><div class="gtop"><span class="dot" style="--c:${esc(g.color)}"></span><span class="nm">${esc(g.name)}</span><span class="gst" style="--c:${st.c}">${st.label}</span>${full?`<button class="iconbtn" data-act="goal-log" data-id="${g.id}" aria-label="היסטוריית רישומים">${ic('calendar','sm')}</button><button class="iconbtn" data-act="goal-edit" data-id="${g.id}" aria-label="הגדרות היעד">${ic('gear','sm')}</button>`:''}</div>
+  <div class="gnum">${goalText(g,p.value)}${hintTxt?`<small>${hintTxt}</small>`:''}</div>
+  <div class="bar" style="--c:${st.c}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+  <div class="wkdots" style="--c:${esc(g.color)}">${dots}</div>
+  ${cur&&st.k!=='done'||cur&&g.kind==='daily'?logControls(g,p):''}</div>`;
+}
+function weekSummary(ws){
+  const we=addDays(ws,6),inW=d=>d>=ws&&d<=we;
+  const gs=S.goals.map(g=>({g,st:goalStatus(g,ws)}));
+  const done=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&inW(iso(new Date(t.completedAt))));
+  const failed=S.tasks.filter(t=>t.status==='failed'&&t.due&&inW(t.due));
+  return {gs,done,failed,ach:gs.filter(x=>x.st.k==='done').length};
+}
+async function seq(items,fn){for(const it of items) await fn(it)}
+
+/* ---------- toast ---------- */
+let toastT;function toast(msg){let el=$('.toast');if(el)el.remove();el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),2600)}
+const dberr=e=>toast(e&&e.code==='quota_exceeded'?'המקום במסד הנתונים מלא':'השמירה נכשלה, נסה שוב');
+
+/* ---------- rendering: tabs ---------- */
+function renderTabs(){
+  const r=S.route,tb=(t,act,icn,label)=>`<button class="tab ${r.type===t?'on':''}" data-act="${act}">${ic(icn,'sm')}${label}</button>`;
+  $('#tabs').innerHTML=tb('today','go-today','sun','היום')+tb('dash','go-dash','dash','דשבורד')+tb('goals','go-goals','target','יעדים')+
+    S.spaces.map(s=>`<button class="tab ${r.type==='space'&&r.id===s.id?'on':''}" data-act="go-space" data-id="${s.id}"><span class="dot" style="--c:${esc(s.color)}"></span>${esc(s.name)}</button>`).join('')+
+    `<button class="tab tab-add" data-act="new-space">${ic('plus','sm')}מרחב חדש</button>`;
+}
+
+/* ---------- rendering: main ---------- */
+function render(){
+  if(S.drag){S.dirty=true;return}
+  S.dirty=false;
+  if(S.route.type==='space'&&!spaceOf(S.route.id)&&S.loaded.s) S.route={type:'today'};
+  renderTabs();
+  const v=$('#view');
+  if(!S.loaded.s||!S.loaded.t||!S.loaded.g||!S.loaded.l){v.innerHTML='<div class="notice">טוען…</div>';return}
+  const q0=document.getElementById('quickIn'),qv=q0?q0.value:'',qf=!!q0&&document.activeElement===q0;
+  v.innerHTML=S.route.type==='today'?viewToday():S.route.type==='dash'?viewDash():S.route.type==='goals'?viewGoals():viewSpace(spaceOf(S.route.id));
+  const q1=document.getElementById('quickIn');if(q1&&qv){q1.value=qv}if(q1&&qf)q1.focus();
+  syncScope();
+}
+function emptyState(){return `<div class="empty"><h2>אין עדיין מרחבים</h2><p>מרחב הוא אוסף משימות סביב תחום בחיים או בעבודה, למשל בית, עבודה או לימודים.</p><button class="btn primary" data-act="new-space">${ic('plus')}צור מרחב ראשון</button></div>`}
+
+function trow(t,showSpace){
+  const sp=spaceOf(t.spaceId),d=dueInfo(t);
+  return `<div class="trow" data-act="open-task" data-id="${t.id}">${showSpace&&sp?`<span class="dot" style="--c:${esc(sp.color)}" title="${esc(sp.name)}"></span>`:''}<span class="t">${esc(t.title)}</span>${t.priority==='urgent'?'':`<span class="pill" style="--c:var(--p-${t.priority})">${PRI[t.priority].label}</span>`}${datesHtml(t)}</div>`;
+}
+function selSpaces(){
+  const hidden=lsGet('ms.hidden',[]);
+  const sel=S.spaces.filter(s=>!hidden.includes(s.id));
+  return {hidden,sel,ids:new Set(sel.map(s=>s.id))};
+}
+function gmini(g,ws){
+  const st=goalStatus(g,ws),t=Number(g.target)||1,pct=Math.max(0,Math.min(100,Math.round(st.p.value/t*100)));
+  return `<button class="gmini" data-act="go-goals"><div class="r"><span class="dot" style="--c:${esc(g.color)}"></span><span class="nm">${esc(g.name)}</span><span class="due">${goalText(g,st.p.value)}</span><span class="gst" style="--c:${st.c}">${st.label}</span></div><div class="bar" style="--c:${st.c}"><i style="width:${pct}%"></i></div></button>`;
+}
+function viewDash(){
+  const sp=S.spaces;if(!sp.length) return emptyState();
+  const {hidden,sel,ids}=selSpaces();
+  const td=todayISO(),open=S.tasks.filter(t=>ids.has(t.spaceId)&&isOpen(t));
+  const em=calEntries(open);
+  const g={urgent:open.filter(t=>t.priority==='urgent'),today:[],over:open.filter(t=>(isSlipped(t)||isOverdue(t))&&t.priority!=='urgent')};
+  g.today=(em[td]||[]).filter(e=>e.kind==='plan'||e.kind==='dl').map(e=>e.t).filter((t,i,a)=>t.priority!=='urgent'&&a.indexOf(t)===i);
+  const now=new Date();
+  const panel=(title,list,color,empty)=>`<section class="panel"><h3><span class="dot" style="--c:${color}"></span>${title}<span class="count">${list.length}</span></h3>${list.length?list.map(t=>trow(t,true)).join(''):`<div class="empty-note">${empty}</div>`}</section>`;
+  const ws=weekStart(),cws=wkStart(td);
+  const days=[];for(let i=0;i<7;i++){const k=addDays(td,i),dd=parseD(k);days.push({k,label:i===0?'היום':i===1?'מחר':'יום '+DOW[dd.getDay()],sub:`${dd.getDate()}.${dd.getMonth()+1}`,list:(em[k]||[]).filter(e=>e.kind==='plan'||e.kind==='dl'||e.kind==='carry')})}
+  const week=`<section class="panel wide"><h3>השבוע הקרוב<span class="count">${days.reduce((n,x)=>n+x.list.length,0)}</span></h3><div class="weekgrid">${days.map((x,i)=>`<div class="wd ${i===0?'now':''}"><h4><b>${x.label}</b><span class="due">${x.sub}</span></h4>${x.list.length?x.list.map(e=>evChip(e,true)).join(''):'<span class="none">פנוי</span>'}</div>`).join('')}</div></section>`;
+  const sm=weekSummary(cws);
+  const goalsP=S.goals.length?`<section class="panel wide"><h3>יעדים השבוע<span class="count">${sm.ach}/${S.goals.length} הושגו</span></h3>${S.goals.map(x=>gmini(x,cws)).join('')}<div class="hint" style="padding:6px 8px 0">משימות שהושלמו השבוע: ${sm.done.length} · משימות שנכשלו: ${sm.failed.length}</div></section>`:'';
+  const cards=sel.map(s=>{
+    const ts=tasksOf(s.id),o=ts.filter(isOpen),ov=ts.filter(t=>isSlipped(t)||isOverdue(t)),cl=ts.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=ws);
+    return `<button class="scard" style="--c:${esc(s.color)}" data-act="go-space" data-id="${s.id}"><div class="nm"><span class="dot" style="--c:${esc(s.color)}"></span>${esc(s.name)}<span class="vw">${VIEWS[s.view]?VIEWS[s.view].label:''}</span></div>
+      <div class="stats"><div class="stat"><b>${o.length}</b><span>פתוחות</span></div><div class="stat ${ov.length?'bad':''}"><b>${ov.length}</b><span>באיחור</span></div><div class="stat"><b>${cl.length}</b><span>נסגרו השבוע</span></div></div></button>`}).join('');
+  return `<div class="pagehead"><h1>דשבורד</h1><span class="sub">יום ${DOW[now.getDay()]}, ${now.getDate()} ב${MONTHS[now.getMonth()]}</span></div>
+  <div class="chips" role="group" aria-label="בחירת מרחבים להצגה">${sp.map(s=>`<button class="chip ${hidden.includes(s.id)?'off':''}" data-act="toggle-sel" data-id="${s.id}" aria-pressed="${!hidden.includes(s.id)}"><span class="dot" style="--c:${esc(s.color)}"></span>${esc(s.name)}</button>`).join('')}</div>
+  ${sel.length?`<div class="grid3">${panel('דחוף',g.urgent,'var(--p-urgent)','אין משימות דחופות')}${panel('להיום',g.today,'var(--accent)','אין משימות להיום')}${panel('גולגלו ובאיחור',g.over,'var(--warn)','אין משימות שגולגלו')}</div>
+  ${goalsP}${week}<h2 class="sh">המרחבים שלי</h2><div class="cards">${cards}</div>`:`<div class="empty-note">בחר לפחות מרחב אחד להצגה.</div>`}`;
+}
+
+function viewToday(){
+  if(!S.spaces.length&&!S.goals.length) return emptyState();
+  const {ids}=selSpaces(),td=todayISO(),now=new Date(),cws=wkStart(td);
+  const ts=S.tasks.filter(t=>ids.has(t.spaceId)),open=ts.filter(isOpen),te=calEntries(open)[td]||[];
+  const uniq=(a)=>a.filter((t,i)=>a.indexOf(t)===i);
+  const plan=uniq(te.filter(e=>e.kind==='plan').map(e=>e.t)),dl=uniq(te.filter(e=>e.kind==='dl').map(e=>e.t));
+  const carry=open.filter(isSlipped).sort((a,b)=>(a.planned<b.planned?-1:a.planned>b.planned?1:priRank(a.priority)-priRank(b.priority)));
+  const overd=open.filter(isOverdue);
+  const doneToday=ts.filter(t=>t.status==='done'&&t.completedAt&&iso(new Date(t.completedAt))===td);
+  const failedWeek=ts.filter(t=>t.status==='failed'&&t.due&&t.due>=cws);
+  const row=(t,note)=>{const sp=spaceOf(t.spaceId)||{};return `<div class="todorow ${t.status==='done'?'isdone':''}" data-act="open-task" data-id="${t.id}"><button class="cb ${t.status==='done'?'on':''}" style="--c:var(--p-${t.priority})" data-act="toggle-done" data-id="${t.id}" role="checkbox" aria-checked="${t.status==='done'}" aria-label="סמן כהושלמה"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><span class="dot" style="--c:${esc(sp.color||'var(--muted)')}" title="${esc(sp.name||'')}"></span><span class="t">${esc(t.title)}</span>${note?`<span class="due ${note.cls||''}">${note.text}</span>`:''}${subsBadge(t)}${repBadge(t)}<span class="pill" style="--c:var(--p-${t.priority})">${PRI[t.priority].label}</span>${canPostpone(t)?`<button class="btn" style="padding:4px 10px;min-height:0" data-act="postpone" data-id="${t.id}">מחר</button>`:''}</div>`};
+  const sec=(title,list,color,empty,noteFn)=>`<section class="panel"><h3><span class="dot" style="--c:${color}"></span>${title}<span class="count">${list.length}</span></h3>${list.length?list.map(t=>row(t,noteFn&&noteFn(t))).join(''):`<div class="empty-note">${empty}</div>`}</section>`;
+  const tasksCol=`<div class="stack">
+    ${sec('מתוכננות להיום',plan,'var(--accent)','אין משימות שתוכננו להיום. אפשר להוסיף משימה ולבחור לה יום.')}
+    ${dl.length?sec('מועד אחרון היום',dl,'var(--p-urgent)','',t=>({text:'מועד אחרון היום',cls:'today'})):''}
+    ${carry.length||overd.length?sec('גולגלו (לא הושלמו ביום שתוכנן)',[...carry,...overd],'var(--warn)','',t=>t.due?{text:`עד ${labDay(t.due)}`,cls:t.due<td?'over':''}:{text:'ללא מועד אחרון'}):''}
+    ${doneToday.length?sec('הושלמו היום',doneToday,'var(--ok)',''):''}
+    ${failedWeek.length?sec('נכשלו השבוע',failedWeek,'var(--danger)','',t=>({text:labDay(t.due),cls:'over'})):''}</div>`;
+  const goalsCol=S.goals.length?`<div class="stack"><h2 class="sh" style="margin:0">היעדים שלי היום</h2>${S.goals.map(g=>gcard(g,cws,false)).join('')}</div>`:`<div class="panel"><h3>יעדים</h3><div class="empty-note">עדיין אין יעדים שבועיים.</div><button class="btn primary" data-act="new-goal">${ic('plus')}יעד חדש</button></div>`;
+  const total=plan.length+dl.length+carry.length+overd.length;
+  return `<div class="pagehead"><h1>היום</h1><span class="sub">יום ${DOW[now.getDay()]}, ${now.getDate()} ב${MONTHS[now.getMonth()]} · ${total?`${total} משימות פתוחות להיום`:'אין משימות פתוחות להיום'}${doneToday.length?` · ${doneToday.length} הושלמו`:''}</span></div><div class="today-grid">${tasksCol}${goalsCol}</div>`;
+}
+
+function viewGoals(){
+  const td=todayISO(),ws=S.gweek||wkStart(td),we=addDays(ws,6),cur=ws===wkStart(td);
+  const nav=`<div class="weeknav"><button class="iconbtn" data-act="gw-prev" aria-label="שבוע קודם">${ic('chevR')}</button><button class="iconbtn" data-act="gw-next" aria-label="שבוע הבא">${ic('chevL')}</button><h2>${fmtShort(ws)} – ${fmtShort(we)}</h2>${cur?'':`<button class="btn" data-act="gw-now">השבוע הנוכחי</button>`}</div>`;
+  const sm=weekSummary(ws);
+  const rate=sm.done.length+sm.failed.length?Math.round(sm.done.length/(sm.done.length+sm.failed.length)*100)+'%':'—';
+  const lines=sm.gs.map(x=>`<div class="sumline"><span class="dot" style="--c:${esc(x.g.color)}"></span><span class="nm">${esc(x.g.name)}</span><span class="due">${goalText(x.g,x.st.p.value)}</span><span class="gst" style="--c:${x.st.c}">${x.st.label}</span></div>`).join('');
+  const summary=`<section class="panel wide" style="margin-top:22px"><h3>סיכום שבוע</h3><div class="sumgrid"><div class="stat"><b>${sm.ach}/${S.goals.length}</b><span>יעדים שהושגו</span></div><div class="stat"><b>${sm.done.length}</b><span>משימות שהושלמו</span></div><div class="stat ${sm.failed.length?'bad':''}"><b>${sm.failed.length}</b><span>משימות שנכשלו</span></div><div class="stat"><b>${rate}</b><span>אחוז הצלחה במשימות</span></div></div>${lines||'<div class="empty-note">אין יעדים להצגה.</div>'}${sm.failed.length?`<div class="hint" style="padding-top:8px">נכשלו: ${sm.failed.slice(0,8).map(t=>esc(t.title)).join(', ')}</div>`:''}</section>`;
+  return `<div class="pagehead"><h1>יעדים</h1><span class="sub">מתאפסים בכל יום ראשון</span><span class="spacer"></span>${nav}<button class="btn primary" data-act="new-goal">${ic('plus')}יעד חדש</button></div>
+  ${S.goals.length?`<div class="gcards">${S.goals.map(g=>gcard(g,ws,true)).join('')}</div>`:`<div class="empty"><h2>אין עדיין יעדים</h2><p>יעד שבועי הוא משהו שחוזרים עליו, למשל 4 אימונים בשבוע או 3 שעות לימוד.</p><button class="btn primary" data-act="new-goal">${ic('plus')}צור יעד ראשון</button></div>`}
+  ${S.goals.length?summary:''}`;
+}
+
+function viewSpace(s){
+  if(!s) return '';
+  const ts=tasksOf(s.id);
+  const body=s.view==='kanban'?viewKanban(s,ts):s.view==='calendar'?viewCal(s,ts):viewTodo(s,ts);
+  const head=`<div class="pagehead"><h1><span class="dot" style="--c:${esc(s.color)};width:14px;height:14px"></span>${esc(s.name)}</h1>
+   <button class="iconbtn" data-act="edit-space" aria-label="הגדרות המרחב">${ic('gear')}</button><span class="spacer"></span>
+   <div class="seg" role="group" aria-label="תצוגה">${Object.keys(VIEWS).map(k=>`<button class="${s.view===k?'on':''}" data-act="set-view" data-v="${k}">${ic(k==='kanban'?'kanban':k==='todo'?'todo':'calendar','sm')}${VIEWS[k].label}</button>`).join('')}</div>
+   <button class="btn primary" data-act="new-task">${ic('plus')}משימה חדשה</button></div>`;
+  const quick=`<form class="quick" data-quick><input class="inp" id="quickIn" autocomplete="off" maxlength="200" placeholder="הוספה מהירה: כתוב משימה ולחץ Enter" aria-label="הוספה מהירה"><button class="btn primary" type="submit">הוסף</button></form>`;
+  return head+quick+body;
+}
+
+function viewKanban(s,ts){
+  const sts=[...STA_ORDER];if(ts.some(t=>t.status==='failed'))sts.push('failed');
+  const cols=sts.map(st=>{
+    const list=ts.filter(t=>t.status===st).sort(byOrder);
+    return `<div class="col" data-col="${st}"><div class="colh">${statusIcon(st)}${STA[st].label}<span class="count">${list.length}</span>${st==='failed'?'':`<button class="iconbtn" data-act="new-task" data-status="${st}" aria-label="משימה חדשה ב${STA[st].label}">${ic('plus','sm')}</button>`}</div>
+    ${list.map(t=>`<div class="kcard ${t.status==='done'?'isdone':''}" draggable="true" data-act="open-task" data-id="${t.id}"><div class="kh"><div class="ttl">${esc(t.title)}</div><button class="iconbtn" data-act="move-task" data-id="${t.id}" aria-label="העבר לסטטוס אחר">${ic('move','sm')}</button></div><div class="meta"><span class="pill" style="--c:var(--p-${t.priority})">${PRI[t.priority].label}</span>${statePill(t)}${datesHtml(t)}${subsBadge(t)}${repBadge(t)}</div></div>`).join('')}</div>`}).join('');
+  return `<div class="board" style="--n:${sts.length}">${cols}</div>`;
+}
+
+function viewTodo(s,ts){
+  const open=ts.filter(isOpen),done=ts.filter(t=>t.status==='done').sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||'')),failed=ts.filter(t=>t.status==='failed').sort((a,b)=>(b.due||'').localeCompare(a.due||''));
+  const row=t=>`<div class="todorow ${t.status==='done'?'isdone':''}" data-act="open-task" data-id="${t.id}"><button class="cb ${t.status==='done'?'on':''}" style="--c:var(--p-${t.priority})" data-act="toggle-done" data-id="${t.id}" role="checkbox" aria-checked="${t.status==='done'}" aria-label="סמן כהושלמה"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><span class="t">${esc(t.title)}</span>${subsBadge(t)}${repBadge(t)}${statePill(t)}${t.status==='new'||t.status==='done'||t.status==='failed'?'':`<span class="due">${statusIcon(t.status)}</span>`}${datesHtml(t)}</div>`;
+  const sk=t=>planDayKey(t);
+  const groups=PRI_ORDER.map(p=>{
+    const l=open.filter(t=>t.priority===p).sort((a,b)=>(sk(a)<sk(b)?-1:sk(a)>sk(b)?1:byOrder(a,b)));
+    return l.length?`<div class="tg"><div class="tgh" style="--c:var(--p-${p})"><span class="dot" style="--c:var(--p-${p})"></span>${PRI[p].label}<span class="count">${l.length}</span></div>${l.map(row).join('')}</div>`:'';
+  }).join('');
+  return `<div class="todo">${groups||'<div class="empty-note">אין משימות פתוחות. כל הכבוד!</div>'}
+   ${failed.length?`<button class="togglebar" data-act="toggle-showfailed">${ic('chev','sm')}נכשלו (${failed.length})</button>${S.showFailed?failed.map(row).join(''):''}`:''}
+   ${done.length?`<button class="togglebar" data-act="toggle-showdone">${ic('chev','sm')}הושלמו (${done.length})</button>${S.showDone?done.map(row).join(''):''}`:''}</div>`;
+}
+const planDayKey=t=>(modeOf(t)==='fixed'?t.due:(t.planned||t.due))||'9';
+
+function viewCal(s,ts){
+  const {y,m}=S.cal,first=new Date(y,m,1),start=new Date(y,m,1-first.getDay());
+  const weeks=Math.ceil((first.getDay()+new Date(y,m+1,0).getDate())/7),td=todayISO();
+  const by=calEntries(ts);
+  let cells='';
+  for(let i=0;i<weeks*7;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const k=iso(d),list=by[k]||[];
+    cells+=`<div class="day ${d.getMonth()!==m?'out':''} ${k===td?'now':''}" data-act="new-task" data-date="${k}" data-day="${k}"><div class="dn">${d.getDate()}</div>${list.slice(0,3).map(e=>evChip(e)).join('')}${list.length>3?`<button class="more" data-act="day-list" data-date="${k}">עוד ${list.length-3}</button>`:''}</div>`;
+  }
+  const nd=ts.filter(t=>isOpen(t)&&!t.due&&!(modeOf(t)==='flex'&&t.planned));
+  return `<div class="calhead"><button class="iconbtn" data-act="cal-prev" aria-label="חודש קודם">${ic('chevR')}</button><button class="iconbtn" data-act="cal-next" aria-label="חודש הבא">${ic('chevL')}</button>
+   <h2>${MONTHS[m]} ${y}</h2><button class="btn" data-act="cal-today">היום</button></div>
+   <div class="cal"><div class="calgrid">${DOWS.map(x=>`<div class="dow">${x}</div>`).join('')}${cells}</div></div>
+   <div class="hint" style="margin-top:8px">כתום מקווקו: יום שתוכנן ולא הושלם · כתום מלא ↻: גולגל להיום · ⚑ מועד אחרון · אדום: נכשלה</div>
+   <div class="nodate" data-day=""><h4>ללא תאריך (${nd.length}). גרור משימה ליום כדי לתזמן, או אל כאן כדי להסיר תאריך</h4><div class="evs">${nd.map(t=>`<button class="ev" style="--c:var(--p-${t.priority})" draggable="true" data-field="${modeOf(t)==='fixed'?'due':'planned'}" data-act="open-task" data-id="${t.id}"><span>${esc(t.title)}</span></button>`).join('')}</div></div>`;
+}
+
+/* ---------- modals ---------- */
+const mroot=()=>$('#modalRoot');
+function closeModal(){mroot().innerHTML='';document.removeEventListener('keydown',escClose)}
+function escClose(e){if(e.key==='Escape')closeModal()}
+function openModal(html,onMount){
+  mroot().innerHTML=`<div class="scrim" data-scrim><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  document.addEventListener('keydown',escClose);
+  const sc=$('[data-scrim]',mroot());sc.addEventListener('mousedown',e=>{if(e.target===sc)closeModal()});
+  if(onMount)onMount($('.modal',mroot()));
+}
+function optsHtml(name,items,cur,colorFn){return `<div class="opts" role="radiogroup" data-opts="${name}">${items.map(([k,l])=>`<button type="button" class="opt ${cur===k?'on':''}" data-val="${k}" role="radio" aria-checked="${cur===k}" ${colorFn?`style="--c:${colorFn(k)}"`:''}>${colorFn?`<span class="dot" style="--c:${colorFn(k)}"></span>`:''}${l}</button>`).join('')}</div>`}
+function wireOpts(root){root.querySelectorAll('[data-opts]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;g.querySelectorAll('.opt').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)});g.dataset.value=b.dataset.val}))}
+const optVal=(root,name)=>{const g=root.querySelector(`[data-opts="${name}"]`);return g.dataset.value||(g.querySelector('.opt.on')||{dataset:{}}).dataset.val}
+
+function openTaskModal(id,draft){
+  const t=id?S.tasks.find(x=>x.id===id):null;
+  if(id&&!t)return;
+  const dr={};Object.keys(draft||{}).forEach(k=>{if(draft[k]!==undefined&&draft[k]!=='')dr[k]=draft[k]});
+  const d=t||{title:'',notes:'',priority:'medium',due:'',planned:'',mode:'flex',status:'new',spaceId:S.route.type==='space'?S.route.id:(S.spaces[0]||{}).id,...dr};
+  const mode0=modeOf(d);
+  const stOpts=[...STA_ORDER];if(d.status==='failed')stOpts.push('failed');
+  openModal(`<div class="mh"><h2>${t?'עריכת משימה':'משימה חדשה'}</h2><button class="iconbtn" data-close aria-label="סגירה">${ic('close')}</button></div>
+  <form class="mb" id="taskForm">
+   <div class="fld"><label for="f-title">כותרת</label><input class="inp" id="f-title" value="${esc(d.title)}" placeholder="מה צריך לעשות?" required maxlength="200"></div>
+   <div class="fld"><span class="lb">עדיפות</span>${optsHtml('priority',PRI_ORDER.map(k=>[k,PRI[k].label]),d.priority,k=>`var(--p-${k})`)}</div>
+   <div class="fld"><span class="lb">סטטוס</span>${optsHtml('status',stOpts.map(k=>[k,STA[k].label]),d.status)}</div>
+   <div class="fld"><span class="lb">סוג התזמון</span>${optsHtml('mode',[['flex','גמישה'],['fixed','יום קבוע']],mode0)}<div class="hint" id="modeHint"></div></div>
+   <div class="fld" id="fld-planned"><label for="f-planned">יום מתוכנן</label><input class="inp" type="date" id="f-planned" value="${esc(d.planned||'')}"></div>
+   <div class="fld"><label for="f-due" id="lb-due">מועד אחרון</label><div style="display:flex;gap:8px"><input class="inp" type="date" id="f-due" value="${esc(d.due||'')}"><button type="button" class="btn ghost" data-cleardate>הסר תאריך</button></div></div>
+   <div class="fld"><span class="lb">חזרה</span>${optsHtml('repeat',[['','ללא'],['daily','כל יום'],['weekly','כל שבוע'],['monthly','כל חודש']],d.repeat||'')}</div>
+   <div class="fld"><span class="lb">תת-משימות</span><div class="sublist" id="sublist"></div><div class="quick" style="margin:0"><input class="inp" id="f-sub" autocomplete="off" placeholder="הוסף תת-משימה ולחץ Enter"><button type="button" class="btn" id="addSub">הוספה</button></div></div>
+   <div class="fld"><label for="f-space">מרחב</label><select class="inp" id="f-space">${S.spaces.map(s=>`<option value="${s.id}" ${s.id===d.spaceId?'selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
+   <div class="fld"><label for="f-notes">הערות</label><textarea class="inp" id="f-notes" placeholder="פרטים נוספים (לא חובה)">${esc(d.notes||'')}</textarea></div>
+  </form>
+  <div class="mf"><button class="btn primary" id="saveTask">${t?'שמירה':'הוספה'}</button><button class="btn" data-close>ביטול</button><span class="spacer"></span>${t?`<button class="btn danger" id="delTask">${ic('trash','sm')}מחיקה</button>`:''}</div>`,m=>{
+    wireOpts(m);
+    const syncMode=()=>{
+      const md=optVal(m,'mode')||'flex';
+      m.querySelector('#fld-planned').hidden=md==='fixed';
+      m.querySelector('#lb-due').textContent=md==='fixed'?'התאריך (היום שבו צריך לבצע)':'מועד אחרון (לא חובה)';
+      m.querySelector('#modeHint').textContent=md==='fixed'?'יום קבוע: אם לא הושלמה עד סוף היום, היא נכשלת באותו יום ונצבעת באדום.':'גמישה: אם לא הושלמה ביום המתוכנן היא נצבעת בכתום ועוברת ליום הבא. אם עבר המועד האחרון, היא נכשלת.';
+    };
+    syncMode();
+    m.querySelector('[data-opts="mode"]').addEventListener('click',syncMode);
+    let subs=(d.subs||[]).map(x=>({t:x.t,d:!!x.d}));
+    const paintSubs=()=>{const l=m.querySelector('#sublist');l.innerHTML=subs.map((x,i)=>`<div class="subrow ${x.d?'done':''}"><button type="button" class="cb ${x.d?'on':''}" data-si="${i}" role="checkbox" aria-checked="${x.d}" aria-label="סמן תת-משימה"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button><span class="t">${esc(x.t)}</span><button type="button" class="iconbtn" data-sdel="${i}" aria-label="מחק תת-משימה">${ic('close','sm')}</button></div>`).join('')};
+    paintSubs();
+    m.querySelector('#sublist').addEventListener('click',e=>{const c=e.target.closest('[data-si]'),x=e.target.closest('[data-sdel]');if(c){subs[+c.dataset.si].d=!subs[+c.dataset.si].d;paintSubs()}else if(x){subs.splice(+x.dataset.sdel,1);paintSubs()}});
+    const addSub=()=>{const i=m.querySelector('#f-sub'),v=i.value.trim();if(!v)return;subs.push({t:v.slice(0,200),d:false});i.value='';paintSubs();i.focus()};
+    m.querySelector('#addSub').addEventListener('click',addSub);
+    m.querySelector('#f-sub').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSub()}});
+    m.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModal));
+    m.querySelector('[data-cleardate]').addEventListener('click',()=>{m.querySelector('#f-due').value=''});
+    const form=m.querySelector('#taskForm');
+    const save=async()=>{
+      const title=m.querySelector('#f-title').value.trim();if(!title){m.querySelector('#f-title').focus();return}
+      const pend=m.querySelector('#f-sub').value.trim();if(pend){subs.push({t:pend.slice(0,200),d:false})}
+      const mode=optVal(m,'mode')||'flex',due=m.querySelector('#f-due').value||'',planned=mode==='fixed'?'':(m.querySelector('#f-planned').value||'');
+      if(mode==='flex'&&planned&&due&&planned>due){toast('היום המתוכנן אחרי המועד האחרון');return}
+      let status=optVal(m,'status');if(status==='failed'&&(!due||due>=todayISO()))status='new';
+      const data={title,priority:optVal(m,'priority'),status,mode,planned,due,spaceId:m.querySelector('#f-space').value,notes:m.querySelector('#f-notes').value.trim(),repeat:optVal(m,'repeat')||'',subs};
+      try{
+        if(t) await updateTask(t.id,data); else await createTask(data);
+        closeModal();
+      }catch(e){dberr(e)}
+    };
+    form.addEventListener('submit',e=>{e.preventDefault();save()});
+    m.querySelector('#saveTask').addEventListener('click',save);
+    const del=m.querySelector('#delTask');
+    if(del){let armed=false;del.addEventListener('click',async()=>{if(!armed){armed=true;del.textContent='לחץ שוב למחיקה סופית';return}try{await deleteTask(t.id);closeModal()}catch(e){dberr(e)}})}
+    m.querySelector('#f-title').focus();
+  });
+}
+
+function openGoalModal(id){
+  const g=id?S.goals.find(x=>x.id===id):null;
+  const d=g||{name:'',color:COLORS[S.goals.length%COLORS.length],kind:'count',target:3,unit:'',min:7};
+  openModal(`<div class="mh"><h2>${g?'הגדרות היעד':'יעד שבועי חדש'}</h2><button class="iconbtn" data-close aria-label="סגירה">${ic('close')}</button></div>
+  <form class="mb" id="gForm">
+   <div class="fld"><label for="g-name">שם היעד</label><input class="inp" id="g-name" value="${esc(d.name)}" placeholder="למשל: אימונים, שינה, לימוד AI" required maxlength="40"></div>
+   <div class="fld"><span class="lb">צבע</span><div class="opts" data-opts="color">${COLORS.map(c=>`<button type="button" class="swatch ${c===d.color?'on':''}" style="--c:${c}" data-val="${c}" role="radio" aria-checked="${c===d.color}" aria-label="צבע ${c}"></button>`).join('')}</div></div>
+   <div class="fld"><span class="lb">איך סופרים</span><div class="viewopts" data-opts="kind">${Object.keys(KINDS).map(k=>`<button type="button" class="vopt ${d.kind===k?'on':''}" data-val="${k}" role="radio" aria-checked="${d.kind===k}"><span><b>${KINDS[k].label}</b><br><small>${KINDS[k].desc}</small></span></button>`).join('')}</div></div>
+   <div class="fld"><label for="g-target" id="lb-target">${KINDS[d.kind].tl}</label><input class="inp" id="g-target" type="number" inputmode="decimal" min="0.25" step="0.25" value="${esc(d.target)}"></div>
+   <div class="fld" id="fld-min"><label for="g-min">סף ליום (שעות). יום נספר רק אם הגעת לסף</label><input class="inp" id="g-min" type="number" inputmode="decimal" min="0.25" step="0.25" value="${esc(d.min||7)}"></div>
+   <div class="fld" id="fld-unit"><label for="g-unit">שם היחידה (לא חובה), למשל: אימונים, לילות</label><input class="inp" id="g-unit" value="${esc(d.unit||'')}" maxlength="20"></div>
+  </form>
+  <div class="mf"><button class="btn primary" id="saveG">${g?'שמירה':'יצירת יעד'}</button><button class="btn" data-close>ביטול</button><span class="spacer"></span>${g?`<button class="btn danger" id="delG">${ic('trash','sm')}מחיקת היעד</button>`:''}</div>`,m=>{
+    m.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModal));
+    let color=d.color,kind=d.kind;
+    const sync=()=>{m.querySelector('#lb-target').textContent=KINDS[kind].tl;m.querySelector('#fld-min').hidden=kind!=='daily';m.querySelector('#fld-unit').hidden=kind==='sum'};
+    sync();
+    m.querySelector('[data-opts="color"]').addEventListener('click',e=>{const b=e.target.closest('.swatch');if(!b)return;color=b.dataset.val;m.querySelectorAll('.swatch').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)})});
+    m.querySelector('[data-opts="kind"]').addEventListener('click',e=>{const b=e.target.closest('.vopt');if(!b)return;kind=b.dataset.val;m.querySelectorAll('.vopt').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)});sync()});
+    const save=async()=>{
+      const name=m.querySelector('#g-name').value.trim(),target=Number(m.querySelector('#g-target').value),min=Number(m.querySelector('#g-min').value);
+      if(!name){m.querySelector('#g-name').focus();return}
+      if(!(target>0)){toast('היעד חייב להיות גדול מ-0');return}
+      if(kind==='daily'&&!(min>0)){toast('הסף חייב להיות גדול מ-0');return}
+      const data={name,color,kind,target,min:kind==='daily'?min:0,unit:kind==='sum'?'':m.querySelector('#g-unit').value.trim()};
+      try{
+        if(g)await S.db.doc('goals/'+g.id).update(data);
+        else await S.db.doc('goals/g'+Math.random().toString(36).slice(2,9)).set({...data,order:Date.now(),createdAt:new Date().toISOString()});
+        closeModal();
+      }catch(e){dberr(e)}
+    };
+    m.querySelector('#gForm').addEventListener('submit',e=>{e.preventDefault();save()});
+    m.querySelector('#saveG').addEventListener('click',save);
+    const del=m.querySelector('#delG');
+    if(del){let armed=false;del.addEventListener('click',async()=>{if(!armed){armed=true;del.textContent='לחץ שוב: יימחקו גם כל הרישומים';return}
+      try{await seq(S.logs.filter(l=>l.goalId===g.id),l=>S.db.doc('logs/'+l.id).delete());await S.db.doc('goals/'+g.id).delete();closeModal()}catch(e){dberr(e)}})}
+    m.querySelector('#g-name').focus();
+  });
+}
+
+function openGoalLog(id){
+  const g=S.goals.find(x=>x.id===id);if(!g)return;
+  const ws=S.gweek||wkStart(todayISO()),we=addDays(ws,6);
+  const rows=S.logs.filter(l=>l.goalId===g.id&&l.date>=ws&&l.date<=we).sort((a,b)=>a.date<b.date?-1:1);
+  openModal(`<div class="mh"><h2>${esc(g.name)}: רישומים</h2><button class="iconbtn" data-close aria-label="סגירה">${ic('close')}</button></div>
+  <div class="mb"><div class="hint">השבוע: ${fmtShort(ws)} – ${fmtShort(we)}</div>
+  <form class="glog" id="logForm"><input class="inp" type="date" id="lg-date" value="${todayISO()}" style="width:auto" aria-label="תאריך"><input class="inp" id="lg-val" type="number" inputmode="decimal" step="0.25" min="0" value="${g.kind==='count'?'1':''}" placeholder="${g.kind==='count'?'כמות':'שעות'}" aria-label="כמות"><button class="btn primary" type="submit">רשום</button></form>
+  <div id="logList">${rows.length?rows.map(l=>`<div class="logrow"><span class="t">${labDay(l.date)} · ${DOWS[parseD(l.date).getDay()]}</span><b>${fmtN(l.value)}${g.kind==='count'?'':' שעות'}</b><button class="iconbtn" data-ldel="${l.id}" aria-label="מחק רישום">${ic('trash','sm')}</button></div>`).join(''):'<div class="empty-note">אין רישומים בשבוע הזה.</div>'}</div></div>`,m=>{
+    m.querySelector('[data-close]').addEventListener('click',closeModal);
+    m.querySelector('#logForm').addEventListener('submit',async e=>{e.preventDefault();const ok=await addLog(g,m.querySelector('#lg-val').value,m.querySelector('#lg-date').value);if(ok){closeModal();toast('נרשם')}});
+    m.querySelector('#logList').addEventListener('click',async e=>{const b=e.target.closest('[data-ldel]');if(!b)return;try{await S.db.doc('logs/'+b.dataset.ldel).delete();closeModal();toast('הרישום נמחק')}catch(x){dberr(x)}});
+  });
+}
+
+function openSpaceModal(id){
+  const s=id?spaceOf(id):null;
+  const d=s||{name:'',color:COLORS[S.spaces.length%COLORS.length],view:'kanban'};
+  openModal(`<div class="mh"><h2>${s?'הגדרות המרחב':'מרחב חדש'}</h2><button class="iconbtn" data-close aria-label="סגירה">${ic('close')}</button></div>
+  <form class="mb" id="spForm">
+   <div class="fld"><label for="sp-name">שם המרחב</label><input class="inp" id="sp-name" value="${esc(d.name)}" placeholder="למשל: בית, עבודה, לימודים" required maxlength="40"></div>
+   <div class="fld"><span class="lb">צבע</span><div class="opts" data-opts="color" role="radiogroup">${COLORS.map(c=>`<button type="button" class="swatch opt-sw ${c===d.color?'on':''}" style="--c:${c}" data-val="${c}" role="radio" aria-checked="${c===d.color}" aria-label="צבע ${c}"></button>`).join('')}</div></div>
+   <div class="fld"><span class="lb">תצוגה</span><div class="viewopts" data-opts="view" role="radiogroup">${Object.keys(VIEWS).map(k=>`<button type="button" class="vopt ${d.view===k?'on':''}" data-val="${k}" role="radio" aria-checked="${d.view===k}">${ic(k==='kanban'?'kanban':k==='todo'?'todo':'calendar')}<span><b>${VIEWS[k].label}</b><br><small>${VIEWS[k].desc}</small></span></button>`).join('')}</div></div>
+  </form>
+  <div class="mf"><button class="btn primary" id="saveSp">${s?'שמירה':'יצירת מרחב'}</button><button class="btn" data-close>ביטול</button><span class="spacer"></span>${s?`<button class="btn danger" id="delSp">${ic('trash','sm')}מחיקת המרחב</button>`:''}</div>`,m=>{
+    m.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModal));
+    let color=d.color,view=d.view;
+    m.querySelector('[data-opts="color"]').addEventListener('click',e=>{const b=e.target.closest('.swatch');if(!b)return;color=b.dataset.val;m.querySelectorAll('.swatch').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)})});
+    m.querySelector('[data-opts="view"]').addEventListener('click',e=>{const b=e.target.closest('.vopt');if(!b)return;view=b.dataset.val;m.querySelectorAll('.vopt').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)})});
+    const save=async()=>{
+      const name=m.querySelector('#sp-name').value.trim();if(!name){m.querySelector('#sp-name').focus();return}
+      try{
+        if(s) await S.db.doc('spaces/'+s.id).update({name,color,view});
+        else{const nid='s'+Math.random().toString(36).slice(2,9);await S.db.doc('spaces/'+nid).set({name,color,view,order:Date.now(),createdAt:new Date().toISOString()});S.route={type:'space',id:nid};lsSet('ms.route',S.route);syncScope()}
+        closeModal();
+      }catch(e){dberr(e)}
+    };
+    m.querySelector('#spForm').addEventListener('submit',e=>{e.preventDefault();save()});
+    m.querySelector('#saveSp').addEventListener('click',save);
+    const del=m.querySelector('#delSp');
+    if(del){let armed=false;del.addEventListener('click',async()=>{const n=tasksOf(s.id).length;if(!armed){armed=true;del.textContent=n?`לחץ שוב: יימחקו גם ${n} משימות`:'לחץ שוב למחיקה';return}
+      try{await seq(tasksOf(s.id),t=>deleteTask(t.id));await S.db.doc('spaces/'+s.id).delete();S.route={type:'dash'};closeModal();syncScope()}catch(e){dberr(e)}})}
+    m.querySelector('#sp-name').focus();
+  });
+}
+
+function openMoveMenu(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  openModal(`<div class="mh"><h2>העברה לסטטוס</h2><button class="iconbtn" data-close aria-label="סגירה">${ic('close')}</button></div><div class="mb"><div class="mvlist">${STA_ORDER.map(k=>`<button class="opt ${t.status===k?'on':''}" data-mv="${k}">${statusIcon(k)}${STA[k].label}</button>`).join('')}</div></div>`,m=>{
+    m.querySelector('[data-close]').addEventListener('click',closeModal);
+    m.querySelectorAll('[data-mv]').forEach(b=>b.addEventListener('click',async()=>{const st=b.dataset.mv;closeModal();if(st!==t.status){try{await updateTask(id,{status:st,order:Date.now()})}catch(e){dberr(e)}}}));
+  });
+}
+document.addEventListener('submit',async e=>{
+  const gf=e.target.closest('[data-glog]');
+  if(gf){e.preventDefault();const g=S.goals.find(x=>x.id===gf.dataset.glog);const inp=gf.querySelector('input');if(g&&await addLog(g,inp.value)){toast('נרשם')}return}
+  const f=e.target.closest('[data-quick]');if(!f)return;e.preventDefault();
+  const inp=f.querySelector('#quickIn'),v=inp.value.trim();if(!v||S.route.type!=='space')return;
+  inp.value='';
+  try{await createTask({spaceId:S.route.id,title:v.slice(0,200)})}catch(x){inp.value=v;dberr(x)}
+  const q=document.getElementById('quickIn');if(q)q.focus();
+});
+function openDayList(date){
+  const s=spaceOf(S.route.id);if(!s)return;
+  const l=(calEntries(tasksOf(s.id))[date]||[]);
+  const tag={plan:'',carry:'גולגלה',slipghost:'תוכננה ולא הושלמה',dl:'מועד אחרון',fail:'נכשלה',done:'הושלמה'};
+  openModal(`<div class="mh"><h2>${fmtShort(date)}</h2><button class="iconbtn" data-close aria-label="סגירה">${ic('close')}</button></div><div class="mb"><div class="dayList">${l.length?l.map(e=>`<div class="trow" data-act="open-task" data-id="${e.t.id}"><span class="t">${esc(e.t.title)}</span>${tag[e.kind]?`<span class="mini">${tag[e.kind]}</span>`:''}<span class="pill" style="--c:var(--p-${e.t.priority})">${PRI[e.t.priority].label}</span></div>`).join(''):'<div class="empty-note">אין משימות ביום הזה.</div>'}</div></div><div class="mf"><button class="btn primary" data-addday>${ic('plus','sm')}משימה בתאריך הזה</button></div>`,m=>{
+    m.querySelector('[data-close]').addEventListener('click',closeModal);
+    m.querySelector('[data-addday]').addEventListener('click',()=>openTaskModal(null,{planned:date,spaceId:s.id}));
+  });
+}
+
+/* ---------- global events ---------- */
+document.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-act]');if(!el||el.closest('#chat'))return;
+  const a=el.dataset.act,id=el.dataset.id;
+  if(a==='toggle-done'){e.stopPropagation();const t=S.tasks.find(x=>x.id===id);if(!t)return;
+    try{await updateTask(id,{status:t.status==='done'?(t.prevStatus&&t.prevStatus!=='done'?t.prevStatus:'new'):'done'})}catch(x){dberr(x)}return}
+  if(a==='go-dash'||a==='go-today'||a==='go-goals'){S.route={type:a==='go-dash'?'dash':a==='go-today'?'today':'goals'};lsSet('ms.route',S.route);render();syncScopeAuto();window.scrollTo(0,0)}
+  else if(a==='go-space'){S.route={type:'space',id};lsSet('ms.route',S.route);render();syncScopeAuto();window.scrollTo(0,0)}
+  else if(a==='new-space')openSpaceModal(null);
+  else if(a==='edit-space')openSpaceModal(S.route.id);
+  else if(a==='set-view'){const s=spaceOf(S.route.id);if(s&&s.view!==el.dataset.v){try{await S.db.doc('spaces/'+s.id).update({view:el.dataset.v})}catch(x){dberr(x)}}}
+  else if(a==='new-task'&&el.dataset.day!==undefined&&isTouch())openDayList(el.dataset.date);
+  else if(a==='new-task')openTaskModal(null,{status:el.dataset.status||'new',planned:el.dataset.date||'',spaceId:S.route.type==='space'?S.route.id:undefined});
+  else if(a==='postpone'){const t=S.tasks.find(x=>x.id===id);if(t&&canPostpone(t)){try{await updateTask(id,{planned:addDays(todayISO(),1)});toast('נדחתה למחר')}catch(x){dberr(x)}}}
+  else if(a==='log-add'){const g=S.goals.find(x=>x.id===id);if(g&&await addLog(g,el.dataset.v))toast('נרשם')}
+  else if(a==='goal-edit')openGoalModal(id);
+  else if(a==='goal-log')openGoalLog(id);
+  else if(a==='new-goal')openGoalModal(null);
+  else if(a==='gw-prev'){S.gweek=addDays(S.gweek||wkStart(todayISO()),-7);render()}
+  else if(a==='gw-next'){S.gweek=addDays(S.gweek||wkStart(todayISO()),7);render()}
+  else if(a==='gw-now'){S.gweek=null;render()}
+  else if(a==='toggle-showfailed'){S.showFailed=!S.showFailed;render()}
+  else if(a==='open-task')openTaskModal(id);
+  else if(a==='move-task'){e.stopPropagation();openMoveMenu(id)}
+  else if(a==='toggle-sel'){const h=lsGet('ms.hidden',[]);const i=h.indexOf(id);i>=0?h.splice(i,1):h.push(id);lsSet('ms.hidden',h);render()}
+  else if(a==='toggle-showdone'){S.showDone=!S.showDone;render()}
+  else if(a==='cal-prev'){S.cal.m--;if(S.cal.m<0){S.cal.m=11;S.cal.y--}render()}
+  else if(a==='cal-next'){S.cal.m++;if(S.cal.m>11){S.cal.m=0;S.cal.y++}render()}
+  else if(a==='cal-today'){const n=new Date();S.cal={y:n.getFullYear(),m:n.getMonth()};render()}
+  else if(a==='day-list'){e.stopPropagation();openDayList(el.dataset.date)}
+});
+
+/* drag and drop */
+document.addEventListener('dragstart',e=>{
+  const el=e.target.closest&&e.target.closest('[data-act="open-task"][draggable="true"]');if(!el)return;
+  S.drag={id:el.dataset.id,field:el.dataset.field||'due'};e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',el.dataset.id)}catch(x){}
+  setTimeout(()=>el.classList.add('dragging'),0);
+});
+document.addEventListener('dragover',e=>{
+  if(!S.drag)return;
+  const tgt=e.target.closest('[data-col],[data-day]');if(!tgt)return;
+  e.preventDefault();
+  document.querySelectorAll('.over').forEach(x=>{if(x!==tgt)x.classList.remove('over')});tgt.classList.add('over');
+});
+document.addEventListener('dragend',()=>{document.querySelectorAll('.over,.dragging').forEach(x=>x.classList.remove('over','dragging'));const d=S.drag;S.drag=null;if(S.dirty)render()});
+document.addEventListener('drop',async e=>{
+  if(!S.drag)return;const tgt=e.target.closest('[data-col],[data-day]');if(!tgt)return;
+  e.preventDefault();const id=S.drag.id;S.dragField=S.drag.field;S.drag=null;
+  document.querySelectorAll('.over,.dragging').forEach(x=>x.classList.remove('over','dragging'));
+  const t=S.tasks.find(x=>x.id===id);if(!t)return render();
+  try{
+    if(tgt.dataset.col){
+      const st=tgt.dataset.col;if(st==='failed')return render();
+      const list=tasksOf(t.spaceId).filter(x=>x.status===st&&x.id!==id).sort(byOrder);
+      const cards=[...tgt.querySelectorAll('.kcard')].filter(c=>c.dataset.id!==id);
+      let idx=cards.findIndex(c=>{const r=c.getBoundingClientRect();return e.clientY<r.top+r.height/2});if(idx<0)idx=cards.length;
+      const prev=list[idx-1],next=list[idx];
+      const order=!prev&&!next?Date.now():!prev?(next.order||0)-1000:!next?(prev.order||0)+1000:((prev.order||0)+(next.order||0))/2;
+      await updateTask(id,{status:st,order});
+    }else{
+      const day=tgt.dataset.day||'',field=S.dragField||'due';
+      if(day&&field==='planned'&&t.due&&day>t.due){toast('היום המתוכנן לא יכול להיות אחרי המועד האחרון');return render()}
+      if(day&&field==='due'&&t.planned&&modeOf(t)==='flex'&&day<t.planned){toast('המועד האחרון לא יכול להיות לפני היום המתוכנן');return render()}
+      await updateTask(id,{[field]:day});
+    }
+  }catch(x){dberr(x)}
+  render();
+});
+
+/* ---------- AGENT ---------- */
+const C={open:false,scope:'all',busy:false,turns:[],pending:null,ctl:null};
+const scopeIds=sc=>sc==='all'?S.spaces.map(s=>s.id):(spaceOf(sc)?[sc]:S.spaces.map(s=>s.id));
+function scopeLabel(sc){if(sc==='all'||!spaceOf(sc))return {name:'כל המרחבים',sub:`${S.spaces.length} מרחבים`};const s=spaceOf(sc);return {name:s.name,sub:'מרחב בודד',color:s.color}}
+function syncScopeAuto(){C.scope=S.route.type==='space'?S.route.id:'all';syncScope()}
+function syncScope(){
+  if(C.scope!=='all'&&!spaceOf(C.scope))C.scope='all';
+  const l=scopeLabel(C.scope);
+  $('#scopeBtn').innerHTML=`<span style="color:var(--muted);font-weight:400">הסוכן עובד על:</span>${l.color?`<span class="dot" style="--c:${esc(l.color)}"></span>`:''}<span>${esc(l.name)}</span><small>${esc(l.sub)}</small><span style="margin-inline-start:auto">${ic('chev','sm')}</span>`;
+}
+$('#scopeBtn').addEventListener('click',e=>{
+  e.stopPropagation();const m=$('#scopeMenu');
+  if(!m.hidden){m.hidden=true;return}
+  m.innerHTML=`<button class="${C.scope==='all'?'on':''}" data-sc="all"><span class="dot" style="--c:var(--muted)"></span>כל המרחבים</button>`+S.spaces.map(s=>`<button class="${C.scope===s.id?'on':''}" data-sc="${s.id}"><span class="dot" style="--c:${esc(s.color)}"></span>${esc(s.name)}</button>`).join('');
+  m.hidden=false;
+});
+$('#scopeMenu').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;C.scope=b.dataset.sc;$('#scopeMenu').hidden=true;syncScope()});
+document.addEventListener('click',e=>{if(!e.target.closest('.scope'))$('#scopeMenu').hidden=true});
+
+function openChat(o){C.open=o;$('#chat').hidden=!o;$('#fab').hidden=false;$('#fab').setAttribute('aria-expanded',o);if(o){renderSugg();setTimeout(()=>$('#chatInput').focus(),50)}}
+$('#fab').addEventListener('click',()=>openChat(!C.open));
+$('#chatClose').addEventListener('click',()=>openChat(false));
+const msgs=()=>$('#msgs');
+const scrollDown=()=>{const m=msgs();m.scrollTop=m.scrollHeight};
+function addUser(text){const d=document.createElement('div');d.className='m u';d.innerHTML=`<div class="bub">${esc(text)}</div>`;msgs().appendChild(d);scrollDown()}
+function addAssistant(){const d=document.createElement('div');d.className='m a';d.innerHTML=`<div class="acts"></div><div class="bub"><span class="typing"><i></i><i></i><i></i></span></div>`;msgs().appendChild(d);scrollDown();return d}
+function setBub(d,text){const b=d.querySelector('.bub');b.textContent=text||'';if(!text)b.remove();scrollDown()}
+function addAct(d,text){const a=document.createElement('div');a.className='act';a.innerHTML=`${ic('tool')}<span>${esc(text)}</span>`;d.querySelector('.acts').appendChild(a);scrollDown();return a}
+function finishAct(a,text){a.classList.add('ok');a.innerHTML=`${ic('check')}<span>${esc(text)}</span>`}
+function renderSugg(){
+  const box=$('#sugg');
+  if(msgs().children.length){box.innerHTML='';return}
+  const hello=`<div class="hello">היי! אני יכול לענות על שאלות ולבצע פעולות על המשימות שלך, רק בתחום שנבחר למעלה.</div>`;
+  const ex=S.route.type==='space'?['מה המשימות הכי חשובות שצריך לתת להן עדיפות?','תדחה את כל מה שגולגל למחר','תוסיף משימה: לקנות חלב']:['מה נשאר לי להשלים היום?','איך אני עומד ביעדים השבוע?','תדחה את כל מה שגולגל למחר'];
+  box.innerHTML=ex.map(x=>`<button type="button" data-ex>${esc(x)}</button>`).join('');
+  if(!$('#msgs .hello')) msgs().insertAdjacentHTML('afterbegin',hello);
+}
+$('#sugg').addEventListener('click',e=>{const b=e.target.closest('[data-ex]');if(b)send(b.textContent)});
+const ta=$('#chatInput');
+ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,110)+'px'});
+ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('#chatForm').requestSubmit()}});
+$('#chatForm').addEventListener('submit',e=>{e.preventDefault();if(C.busy){C.ctl&&C.ctl.abort();return}const v=ta.value.trim();if(!v)return;ta.value='';ta.style.height='auto';send(v)});
+function setBusy(b){C.busy=b;const sb=$('#sendBtn');sb.innerHTML=b?ic('stop'):`<svg class="ic" viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;sb.setAttribute('aria-label',b?'עצירה':'שליחה');$('#chatStatus').textContent=b?'עובד על זה…':'מוכן לעזור'}
+
+/* tools */
+const STATUS_FILTER=['new','doing','paused','done','failed'];
+function parseFilterSet(ctx,f){
+  f=f||{};const td=todayISO();
+  let r=S.tasks.filter(t=>ctx.ids.includes(t.spaceId));
+  const arr=v=>v==null?null:(Array.isArray(v)?v:[v]);
+  const st=arr(f.status),pr=arr(f.priority);
+  if(st)r=r.filter(t=>st.includes(t.status));else if(!f.include_done)r=r.filter(isOpen);
+  if(pr)r=r.filter(t=>pr.includes(t.priority));
+  if(f.overdue===true)r=r.filter(t=>isSlipped(t)||isOverdue(t));
+  if(f.planned_on)r=r.filter(t=>planDayKey(t)===f.planned_on);
+  if(f.due_on)r=r.filter(t=>t.due===f.due_on);
+  if(f.due_from)r=r.filter(t=>t.due&&t.due>=f.due_from);
+  if(f.due_to)r=r.filter(t=>t.due&&t.due<=f.due_to);
+  if(f.no_due===true)r=r.filter(t=>!t.due);
+  if(f.space){const k=resolveSpace(ctx,f.space,true);r=k?r.filter(t=>t.spaceId===k):[]}
+  if(f.search){const q=String(f.search).toLowerCase();r=r.filter(t=>(t.title+' '+(t.notes||'')).toLowerCase().includes(q))}
+  return r;
+}
+function resolveSpace(ctx,v,soft){
+  if(v==null||v==='')return ctx.ids.length===1&&ctx.sc!=='all'?ctx.ids[0]:null;
+  const q=String(v).trim().toLowerCase();
+  const cand=ctx.ids.map(spaceOf).filter(Boolean);
+  const hit=cand.find(s=>s.id===v)||cand.find(s=>s.name.toLowerCase()===q)||cand.filter(s=>s.name.toLowerCase().includes(q)||q.includes(s.name.toLowerCase()));
+  if(Array.isArray(hit)){if(hit.length===1)return hit[0].id;return null}
+  return hit?hit.id:null;
+}
+const brief=t=>({id:t.id,title:t.title,space:(spaceOf(t.spaceId)||{}).name,status:t.status,priority:t.priority,mode:modeOf(t),planned:t.planned||null,due:t.due||null,state:t.status==='failed'?'failed':isSlipped(t)?'slipped':isOverdue(t)?'overdue':undefined});
+function cleanChanges(c){
+  c=c||{};const o={};
+  if(c.status!==undefined){if(!STA_ORDER.includes(c.status))throw new Error('סטטוס לא חוקי: '+c.status);o.status=c.status}
+  if(c.priority!==undefined){if(!PRI[c.priority])throw new Error('עדיפות לא חוקית: '+c.priority);o.priority=c.priority}
+  for(const k of ['due','planned']){if(c[k]!==undefined){if(c[k]===null||c[k]==='')o[k]='';else if(validDate(c[k]))o[k]=c[k];else throw new Error('תאריך חייב להיות YYYY-MM-DD')}}
+  if(c.mode!==undefined){if(c.mode!=='fixed'&&c.mode!=='flex')throw new Error('mode חייב להיות fixed או flex');o.mode=c.mode}
+  if(c.title!==undefined){const t=String(c.title).trim();if(!t)throw new Error('כותרת ריקה');o.title=t.slice(0,200)}
+  if(c.notes!==undefined)o.notes=String(c.notes).slice(0,2000);
+  if(c.repeat!==undefined){if(c.repeat!==''&&!REP[c.repeat])throw new Error('חזרה לא חוקית');o.repeat=c.repeat}
+  if(!Object.keys(o).length)throw new Error('לא צוינו שינויים');
+  return o;
+}
+const FILTER_PROPS={status:{type:'array',items:{type:'string',enum:STATUS_FILTER},description:'סטטוס: new=חדשה, doing=בעבודה, paused=בהשהייה, done=הושלמה, failed=נכשלה'},priority:{type:'array',items:{type:'string',enum:PRI_ORDER},description:'עדיפות: low=נמוכה, medium=בינונית, high=גבוהה, urgent=דחוף'},overdue:{type:'boolean',description:'רק משימות פתוחות שגולגלו (עבר היום המתוכנן) או באיחור'},planned_on:{type:'string',description:'משימות שמתוכננות ליום מסוים YYYY-MM-DD'},due_on:{type:'string',description:'מועד אחרון מדויק YYYY-MM-DD'},due_from:{type:'string',description:'מועד אחרון מתאריך YYYY-MM-DD'},due_to:{type:'string',description:'מועד אחרון עד תאריך YYYY-MM-DD'},no_due:{type:'boolean',description:'ללא מועד אחרון'},space:{type:'string',description:'שם מרחב (בתוך התחום המותר)'},search:{type:'string',description:'חיפוש טקסט בכותרת/הערות'},include_done:{type:'boolean',description:'לכלול גם משימות שהושלמו או נכשלו (ברירת מחדל: לא)'}};
+
+function applyPendingAction(p){
+  if(p.op==='update')return seq(p.ids,id=>updateTask(id,p.changes)).then(()=>`עודכנו ${p.ids.length} משימות`);
+  if(p.op==='delete')return seq(p.ids,id=>deleteTask(id)).then(()=>`נמחקו ${p.ids.length} משימות`);
+  if(p.op==='add')return seq(p.items.map((x,i)=>({...x,order:Date.now()+i})),x=>createTask(x)).then(()=>`נוספו ${p.items.length} משימות`);
+  if(p.op==='log'){const g=S.goals.find(x=>x.id===p.goalId);if(!g)throw new Error('יעד לא נמצא');return addLog(g,p.value,p.date).then(ok=>{if(!ok)throw new Error('רישום נכשל');return `נרשם ${fmtN(p.value)} ל${g.name}`})}
+}
+function describeChanges(c){
+  const o=[];if(c.status)o.push('סטטוס '+STA[c.status].label);if(c.priority)o.push('עדיפות '+PRI[c.priority].label);
+  if(c.planned!==undefined)o.push(c.planned?('יום מתוכנן '+fmtShort(c.planned)):'הסרת יום מתוכנן');
+  if(c.due!==undefined)o.push(c.due?('מועד אחרון '+fmtShort(c.due)):'הסרת מועד אחרון');if(c.mode)o.push(c.mode==='fixed'?'יום קבוע':'גמישה');
+  if(c.title)o.push('כותרת חדשה');if(c.notes!==undefined)o.push('הערות');
+  if(c.repeat!==undefined)o.push(c.repeat?('חזרה '+REP[c.repeat]):'ללא חזרה');return o.join(', ');
+}
+function findGoal(v){
+  const q=String(v||'').trim().toLowerCase();if(!q)return null;
+  return S.goals.find(g=>g.id===v)||S.goals.find(g=>g.name.toLowerCase()===q)||S.goals.filter(g=>g.name.toLowerCase().includes(q)||q.includes(g.name.toLowerCase()))[0]||null;
+}
+function makeTools(ctx,turn){
+  const gate=(p,summary,count,title)=>{p.summary=summary;p.count=count;p.title=title;(turn.pending=turn.pending||[]).push(p);return {status:'awaiting_user_confirmation',affected:count,note:'הפעולה עדיין לא בוצעה. הסבר למשתמש בקצרה מה אתה מציע לעשות והמתן לאישור בכפתורים בצ׳אט. אל תקרא שוב לכלי עבור אותה פעולה.'}};
+  const act=(label)=>addAct(turn.el,label);
+  return [
+   {name:'read_tasks',description:'קורא משימות בתחום המותר. מחזיר רשימה (עד 60) עם id, כותרת, מרחב, סטטוס, עדיפות, mode (fixed/flex), planned (יום מתוכנן), due (מועד אחרון) ו-state (slipped=גולגלה, failed, overdue). ברירת מחדל: רק משימות פתוחות.',inputSchema:{type:'object',properties:FILTER_PROPS},
+    execute(inp){const a=act('קורא משימות…');const r=parseFilterSet(ctx,inp);const out=r.slice(0,60).map(brief);finishAct(a,`נקראו ${r.length} משימות`);return {total:r.length,tasks:out}}},
+   {name:'add_tasks',description:'מוסיף משימות חדשות. אם התחום הוא מרחב בודד אפשר להשמיט space; אם כל המרחבים חובה לציין space בשם. mode=flex (ברירת מחדל): planned הוא היום המתוכנן ו-due מועד אחרון אופציונלי. mode=fixed: רק due, היום הקבוע. כל הוספה דורשת אישור משתמש.',inputSchema:{type:'object',properties:{tasks:{type:'array',items:{type:'object',properties:{title:{type:'string'},space:{type:'string',description:'שם המרחב'},priority:{type:'string',enum:PRI_ORDER},mode:{type:'string',enum:['flex','fixed']},planned:{type:'string',description:'יום מתוכנן YYYY-MM-DD (mode=flex)'},due:{type:'string',description:'מועד אחרון, או היום הקבוע (mode=fixed), YYYY-MM-DD'},status:{type:'string',enum:STA_ORDER},notes:{type:'string'},repeat:{type:'string',enum:['daily','weekly','monthly']},subtasks:{type:'array',items:{type:'string'},description:'כותרות של תת-משימות'}},required:['title']}}},required:['tasks']},
+    async execute(inp){
+      const list=Array.isArray(inp.tasks)?inp.tasks:[];if(!list.length)throw new Error('לא צוינו משימות');
+      const items=list.map(x=>{
+        const sid=resolveSpace(ctx,x.space);if(!sid)throw new Error(x.space?`המרחב "${x.space}" לא נמצא בתחום המותר`:'חובה לציין מרחב');
+        if(x.due&&!validDate(x.due))throw new Error('due חייב להיות YYYY-MM-DD');if(x.planned&&!validDate(x.planned))throw new Error('planned חייב להיות YYYY-MM-DD');
+        if(x.priority&&!PRI[x.priority])throw new Error('עדיפות לא חוקית');if(x.status&&!STA_ORDER.includes(x.status))throw new Error('סטטוס לא חוקי');
+        if(x.repeat&&!REP[x.repeat])throw new Error('חזרה לא חוקית');
+        const mode=x.mode==='fixed'?'fixed':'flex';
+        if(mode==='flex'&&x.planned&&x.due&&x.planned>x.due)throw new Error('planned אחרי due');
+        return {spaceId:sid,title:String(x.title||'').trim().slice(0,200),priority:x.priority||'medium',mode,planned:mode==='fixed'?'':(x.planned||''),due:x.due||'',status:x.status||'new',notes:x.notes?String(x.notes).slice(0,2000):'',repeat:x.repeat||'',subs:Array.isArray(x.subtasks)?x.subtasks.slice(0,30).map(z=>({t:String(z).slice(0,200),d:false})):[]};
+      });
+      return gate({op:'add',items},items.map(i=>`${i.title} (${(spaceOf(i.spaceId)||{}).name})`),items.length,`להוסיף ${items.length} משימות`)}},
+   {name:'update_tasks',description:'מעדכן משימות: status, priority, planned (יום מתוכנן), due (מועד אחרון), mode, title, notes, repeat. כדי לדחות משימה שגולגלה למחר עדכן planned. בחר משימות לפי ids (מ-read_tasks) או לפי filter. כל עדכון דורש אישור משתמש.',inputSchema:{type:'object',properties:{ids:{type:'array',items:{type:'string'}},filter:{type:'object',properties:FILTER_PROPS},changes:{type:'object',properties:{status:{type:'string',enum:STA_ORDER},priority:{type:'string',enum:PRI_ORDER},planned:{type:'string',description:'YYYY-MM-DD, או מחרוזת ריקה להסרה'},due:{type:'string',description:'YYYY-MM-DD, או מחרוזת ריקה להסרה'},mode:{type:'string',enum:['flex','fixed']},title:{type:'string'},notes:{type:'string'},repeat:{type:'string',enum:['','daily','weekly','monthly']}}}},required:['changes']},
+    async execute(inp){
+      const ch=cleanChanges(inp.changes);
+      let r=Array.isArray(inp.ids)&&inp.ids.length?S.tasks.filter(t=>inp.ids.includes(t.id)&&ctx.ids.includes(t.spaceId)):parseFilterSet(ctx,inp.filter||{});
+      if(ch.status==='done')r=r.filter(t=>t.status!=='done');
+      if(!r.length)throw new Error('לא נמצאו משימות מתאימות בתחום המותר');
+      for(const t of r){const md=ch.mode||modeOf(t),np='planned' in ch?ch.planned:t.planned,nd='due' in ch?ch.due:t.due;if(md==='flex'&&np&&nd&&np>nd)throw new Error(`עבור "${t.title}" היום המתוכנן יהיה אחרי המועד האחרון (${nd}). עדכן גם את due.`)}
+      const p={op:'update',ids:r.map(t=>t.id),changes:ch};
+      return gate(p,r.slice(0,6).map(t=>t.title),r.length,`לעדכן ${r.length} משימות: ${describeChanges(ch)}`)}},
+   {name:'delete_tasks',description:'מוחק משימות. דורש אישור משתמש לפני ביצוע. בחר לפי ids או filter.',inputSchema:{type:'object',properties:{ids:{type:'array',items:{type:'string'}},filter:{type:'object',properties:FILTER_PROPS}}},
+    async execute(inp){
+      const r=Array.isArray(inp.ids)&&inp.ids.length?S.tasks.filter(t=>inp.ids.includes(t.id)&&ctx.ids.includes(t.spaceId)):parseFilterSet(ctx,inp.filter||{});
+      if(!r.length)throw new Error('לא נמצאו משימות מתאימות בתחום המותר');
+      return gate({op:'delete',ids:r.map(t=>t.id)},r.slice(0,6).map(t=>t.title),r.length,`למחוק ${r.length} משימות`)}},
+   {name:'summarize_tasks',description:'מסכם את המשימות בתחום המותר: ספירות לפי סטטוס, עדיפות ומרחב, וכן משימות דחופות, שגולגלו, באיחור, שנכשלו והמתוכננות להיום.',
+    execute(){const a=act('מסכם משימות…');const all=S.tasks.filter(t=>ctx.ids.includes(t.spaceId)),open=all.filter(isOpen),td=todayISO();
+      const cnt=(l,f)=>l.reduce((o,t)=>{const k=f(t);o[k]=(o[k]||0)+1;return o},{});
+      const out={today:td,total:all.length,open:open.length,by_status:cnt(all,t=>t.status),open_by_priority:cnt(open,t=>t.priority),open_by_space:cnt(open,t=>(spaceOf(t.spaceId)||{}).name),
+        slipped_or_overdue:open.filter(t=>isSlipped(t)||isOverdue(t)).slice(0,15).map(brief),planned_today:open.filter(t=>planDayKey(t)===td).map(brief),urgent:open.filter(t=>t.priority==='urgent').slice(0,15).map(brief),
+        failed_this_week:all.filter(t=>t.status==='failed'&&t.due&&t.due>=wkStart(td)).slice(0,15).map(brief),open_without_dates:open.filter(t=>!t.due&&!t.planned).length};
+      finishAct(a,'הסיכום מוכן');return out}},
+   {name:'read_goals',description:'קורא את היעדים השבועיים (הרגלים) ואת ההתקדמות שלהם בשבוע הנוכחי: סוג, יעד, ערך נוכחי, סטטוס (בדרך/בסכנה/קשה להשיג/הושג) ורישומים לפי יום. kind=count: מספר פעמים; sum: סך שעות; daily: ימים שבהם הגעת לסף min שעות.',
+    execute(){const a=act('קורא יעדים…');const ws=wkStart(todayISO());const out=S.goals.map(g=>{const st=goalStatus(g,ws);return {id:g.id,name:g.name,kind:g.kind,target:g.target,min:g.min||undefined,unit:g.unit||undefined,progress:st.p.value,status:st.label,by_day:st.p.byDay}});finishAct(a,`נקראו ${out.length} יעדים`);return {week_start:ws,goals:out}}},
+   {name:'log_progress',description:'רושם התקדמות ליעד שבועי: goal (שם או id), value (כמות: 1 לאימון אחד, או מספר שעות), ו-date אופציונלי (ברירת מחדל היום, YYYY-MM-DD). ביעד מסוג daily (שינה) הרישום ליום מחליף רישום קודם של אותו יום. דורש אישור משתמש.',inputSchema:{type:'object',properties:{goal:{type:'string'},value:{type:'number'},date:{type:'string'}},required:['goal','value']},
+    async execute(inp){
+      const g=findGoal(inp.goal);if(!g)throw new Error('יעד לא נמצא: '+inp.goal);
+      const v=Number(inp.value);if(!(v>0))throw new Error('value חייב להיות גדול מ-0');
+      if(g.kind==='daily'&&v>24)throw new Error('עד 24 שעות');
+      const date=inp.date||todayISO();if(!validDate(date))throw new Error('date חייב להיות YYYY-MM-DD');
+      return gate({op:'log',goalId:g.id,value:v,date},[`${g.name}: ${fmtN(v)}${g.kind==='count'?'':' שעות'} ב-${labDay(date)}`],1,`לרשום התקדמות ל${g.name}`)}}
+  ];
+}
+
+function buildPrompt(ctx,userText){
+  const td=todayISO(),dn=DOW[new Date().getDay()];
+  const names=ctx.ids.map(spaceOf).filter(Boolean).map(s=>`«${s.name}»`).join(', ');
+  const scopeTxt=ctx.sc==='all'?`כל המרחבים (${names})`:`המרחב ${names} בלבד`;
+  return `[הנחיות מערכת — לא להציג למשתמש]
+אתה הסוכן החכם בתוך מערכת אישית לניהול משימות בעברית. היום: יום ${dn}, ${td}. מחר: ${addDays(td,1)}.
+תחום הפעולה המותר להודעה הזו: ${scopeTxt}. הכלים פועלים רק בתחום הזה; אם מבקשים משהו מחוץ לו, הסבר בקצרה שאתה פועל רק על התחום שנבחר ושאפשר לשנות אותו למעלה בחלון הצ׳אט.
+ערכי שדות: סטטוס new=חדשה, doing=בעבודה, paused=בהשהייה, done=הושלמה, failed=נכשלה (נקבע אוטומטית כשעבר המועד האחרון). עדיפות low=נמוכה, medium=בינונית, high=גבוהה, urgent=דחוף. תאריכים בפורמט YYYY-MM-DD, חשב "מחר", "ביום ראשון" וכד׳ מהתאריך של היום.
+מודל המשימות: mode=fixed היא משימה ליום קבוע (due), שנכשלת אם לא הושלמה באותו יום. mode=flex היא משימה גמישה: planned הוא היום המתוכנן ו-due מועד אחרון; אם עבר planned והמשימה לא הושלמה היא "גולגלה" (כתומה) ועוברת להיום, ואם עבר due היא נכשלת. "באיחור" משמעו גולגלה או באיחור. כדי לדחות משימה למחר עדכן planned (ואת due רק אם צריך).
+יעדים שבועיים (הרגלים): kind=count (למשל 4 אימונים), sum (למשל 3 שעות לימוד), daily (ימים שבהם הגעת לסף שעות, למשל שינה 7 שעות ב-4 לילות). השבוע מתחיל ביום ראשון. השתמש ב-read_goals לקריאה וב-log_progress לרישום.
+חוקים: השתמש בכלים כדי לקרוא ולשנות, ואל תמציא משימות או נתונים. כל פעולת שינוי (הוספה, עדכון, מחיקה, רישום התקדמות) מחייבת אישור של המשתמש בכפתור, ואף פעולה לא מתבצעת לפני כן. ענה בעברית קצרה (עד 3 משפטים), טקסט פשוט בלי markdown ובלי כוכביות. אחרי שכלי שינוי מחזיר awaiting_user_confirmation, הפעולה עוד לא בוצעה: הצע בקצרה מה תעשה (כמה משימות ומה ישתנה) והמתן לאישור בכפתורים בצ׳אט; אל תקרא שוב לאותו כלי. אתה יכול להציע כמה פעולות שונות יחד. סגנון: אם הבקשה ברורה ענה קצר וישר, ואם המשתמש מבקש הסבר או שהנושא מורכב הרחב. אם חסר פרט חיוני (למשל לאיזה מרחב להוסיף) שאל שאלה קצרה אחת. אם מבקשים לפרק משימה לתת-משימות, הוסף אותן כ-subtasks בהוספת משימה חדשה. כשמבקשים "מה הכי חשוב" השתמש ב-summarize_tasks או read_tasks והמלץ על סדר עדיפויות עם נימוק קצר. כשמבקשים "איך אני בשבוע" השתמש ב-read_goals וב-summarize_tasks.
+[סוף הנחיות]
+
+${userText}`;
+}
+
+function confirmCard(turn){
+  const list=turn.pending,el=document.createElement('div');el.className='m a';
+    const items=list.map(p=>`<li><b>${esc(p.title)}</b><ul>${p.summary.map(x=>`<li>${esc(x)}</li>`).join('')}${p.count>p.summary.length?`<li>ועוד ${p.count-p.summary.length}…</li>`:''}</ul></li>`).join('');
+  const danger=list.some(p=>p.op==='delete');
+  el.innerHTML=`<div class="confirm"><b>הסוכן מציע לבצע את הפעולות הבאות. לאשר?</b><ul>${items}</ul><div class="bt"><button class="btn ${danger?'danger':'primary'}" data-yes>מאשר</button><button class="btn" data-no>לא מאשר</button></div></div>`;
+  msgs().appendChild(el);scrollDown();
+  const card=el.querySelector('.confirm'),btns=card.querySelector('.bt');
+  const settle=txt=>{card.classList.add('done');btns.innerHTML=`<span class="act ${txt.startsWith('בוצע')?'ok':''}">${esc(txt)}</span>`;C.turns.push({role:'assistant',content:txt});if(C.pending&&C.pending.card===card)C.pending=null};
+  card.querySelector('[data-yes]').addEventListener('click',async()=>{btns.querySelectorAll('button').forEach(b=>b.disabled=true);try{const out=[];for(const p of list)out.push(await applyPendingAction(p));settle('בוצע: '+out.join(', '))}catch(e){settle('הפעולה נכשלה, לא כל השינויים נשמרו')}});
+  card.querySelector('[data-no]').addEventListener('click',()=>settle('בוטל, לא שיניתי כלום'));
+  C.pending={card,settle};
+}
+
+async function send(text){
+  if(C.busy)return;
+  if(C.pending&&C.pending.settle){C.pending.settle('בוטל, לא שיניתי כלום');}
+  $('#sugg').innerHTML='';const h=$('#msgs .hello');if(h)h.remove();
+  addUser(text);
+  const turn={el:addAssistant(),pending:null};
+  const ctx={sc:C.scope,ids:scopeIds(C.scope)};
+  setBusy(true);
+  try{
+    if(!S.sample){S.sample=await claude.use('sample')}
+    if(!S.sample)throw {code:'not_granted'};
+    C.ctl=new AbortController();
+    const hist=C.turns.slice(-10);
+    const input=[...hist,{role:'user',content:buildPrompt(ctx,text)}];
+    const res=await S.sample(input,{tools:makeTools(ctx,turn),signal:C.ctl.signal,cache:false,modelTier:'default',onText:({text:t})=>setBub(turn.el,t)});
+    const final=(res.text||'').trim();
+    setBub(turn.el,final||(turn.pending&&turn.pending.length?'':'בוצע.'));
+    C.turns.push({role:'user',content:text},{role:'assistant',content:final||'בוצע.'});
+    if(turn.pending&&turn.pending.length)confirmCard(turn);
+  }catch(e){
+    const code=e&&e.code;
+    let m='משהו השתבש, נסה שוב.';
+    if(code==='cancelled')m='עצרתי. מה שכבר בוצע נשאר כפי שהוא.';
+    else if(code==='not_granted')m='אין לי הרשאה לפעול. אשר את הבקשה בחלון שנפתח ונסה שוב.';
+    else if(code==='rate_limited')m='יש עומס כרגע, נסה שוב בעוד רגע.';
+    else if(code==='tools_unavailable')m='הסוכן לא זמין בתצוגה הזאת. פתח את המערכת דרך אפליקציית Claude או הדפדפן.';
+    setBub(turn.el,(e&&e.text&&code==='cancelled'?e.text+'\n\n':'')+m);
+  }finally{setBusy(false);C.ctl=null;C.turns=C.turns.slice(-14)}
+}
+
+/* ---------- boot ---------- */
+async function boot(){
+  syncScope();setBusy(false);
+  const db=await claude.use('db').catch(()=>null);
+  if(!db){$('#view').innerHTML='<div class="notice">כדי להשתמש במערכת צריך להיות מחובר ל-Claude. נסה לפתוח את הדף דרך claude.ai.</div>';return}
+  S.db=db;
+  db.collection('spaces').onSnapshot(sn=>{S.spaces=sn.docs.map(d=>({id:d.id,...d.data()}));sortSpaces();if(!S.loaded.s){const r=lsGet('ms.route',null);if(r&&(r.type==='space'?spaceOf(r.id):['today','dash','goals'].includes(r.type))){S.route=r;C.scope=r.type==='space'?r.id:'all'}}S.loaded.s=true;render();syncScope()},e=>{$('#view').innerHTML='<div class="notice">אין גישה למסד הנתונים.</div>'});
+  db.collection('tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();autoFail()},()=>{});
+  db.collection('goals').onSnapshot(sn=>{S.goals=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));S.loaded.g=true;render()},()=>{});
+  db.collection('logs').onSnapshot(sn=>{S.logs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.l=true;render()},()=>{});
+  claude.use('sample').then(s=>{S.sample=s}).catch(()=>{});
+}
+if(window.claude&&claude.use)boot();else $('#view').innerHTML='<div class="notice">הדף צריך לרוץ בתוך Claude.</div>';
+})();
+</script>
