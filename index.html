@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#4a55d0">
 <title>מרחבי משימות</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Rubik:wght@500;600;700&display=swap">
 <style>
@@ -305,16 +307,26 @@ textarea.inp{min-height:80px;resize:vertical}
   .fab span{display:none}.fab{padding:0;width:56px;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.loginbox{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:100;padding:16px}
+.loginbox[hidden]{display:none}
+.loginbox .lcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 24px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.loginbox h1{font-family:var(--font-d);font-size:24px;margin:0}
+.loginbox p{margin:0;color:var(--muted);line-height:1.5}
+#signOutBtn{margin-inline-start:auto}
+.fab[hidden],.chat[hidden]{display:none!important}
 </style>
 
+</head><body>
 <div id="app" dir="rtl">
   <header class="top">
     <div class="brand">מרחבי משימות</div>
     <nav class="tabs" id="tabs" aria-label="מרחבים"></nav>
+    <button class="btn ghost" id="signOutBtn" hidden>יציאה</button>
   </header>
   <main id="view"><div class="notice">טוען…</div></main>
   <div id="modalRoot"></div>
-  <button class="fab" id="fab" aria-label="פתיחת צ'אט עם הסוכן"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg><span>שאל את הסוכן</span></button>
+  <button class="fab" id="fab" hidden aria-label="פתיחת צ'אט עם הסוכן"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg><span>שאל את הסוכן</span></button>
   <section class="chat" id="chat" hidden aria-label="צ'אט עם הסוכן החכם">
     <div class="ch">
       <div class="row">
@@ -333,6 +345,8 @@ textarea.inp{min-height:80px;resize:vertical}
   </section>
 </div>
 
+<div class="loginbox" id="login" hidden><div class="lcard"><h1>מרחבי משימות</h1><p>כדי לראות את המשימות שלך, היכנס עם חשבון Google.</p><button class="btn primary" id="loginBtn" type="button">כניסה עם Google</button><p class="hint" id="loginErr" role="alert"></p></div></div>
+<script src="fb.js"></script>
 <script>
 (()=>{
 'use strict';
@@ -1177,17 +1191,62 @@ async function send(text){
 }
 
 /* ---------- boot ---------- */
+
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyBHFzVCyBt05MZ0RdXPNIEJLtd_5b6P9OA",
+  authDomain:"task-spaces.firebaseapp.com",
+  projectId:"task-spaces",
+  storageBucket:"task-spaces.firebasestorage.app",
+  messagingSenderId:"516630524613",
+  appId:"1:516630524613:web:ce72bf471e519e72af36ac"
+};
+function makeDb(fs,uid){
+  return {
+    collection:c=>({onSnapshot:(ok,err)=>FB.onSnapshot(FB.collection(fs,'users',uid,c),sn=>ok({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))}),err)}),
+    doc:p=>{const [c,id]=p.split('/');const r=FB.doc(fs,'users',uid,c,id);return {set:d=>FB.setDoc(r,d),update:d=>FB.updateDoc(r,d),delete:()=>FB.deleteDoc(r)}}
+  };
+}
+function showLogin(msg){$('#login').hidden=false;$('#signOutBtn').hidden=true;$('#loginErr').textContent=msg||''}
+let startedFor=null;
 async function boot(){
   syncScope();setBusy(false);
-  const db=await claude.use('db').catch(()=>null);
-  if(!db){$('#view').innerHTML='<div class="notice">כדי להשתמש במערכת צריך להיות מחובר ל-Claude. נסה לפתוח את הדף דרך claude.ai.</div>';return}
-  S.db=db;
-  db.collection('spaces').onSnapshot(sn=>{S.spaces=sn.docs.map(d=>({id:d.id,...d.data()}));sortSpaces();if(!S.loaded.s){const r=lsGet('ms.route',null);if(r&&(r.type==='space'?spaceOf(r.id):['today','dash','goals'].includes(r.type))){S.route=r;C.scope=r.type==='space'?r.id:'all'}}S.loaded.s=true;render();syncScope()},e=>{$('#view').innerHTML='<div class="notice">אין גישה למסד הנתונים.</div>'});
-  db.collection('tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();autoFail()},()=>{});
-  db.collection('goals').onSnapshot(sn=>{S.goals=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));S.loaded.g=true;render()},()=>{});
-  db.collection('logs').onSnapshot(sn=>{S.logs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.l=true;render()},()=>{});
-  claude.use('sample').then(s=>{S.sample=s}).catch(()=>{});
+  $('#fab').hidden=true;$('#chat').hidden=true;
+  if(!window.FB){$('#view').innerHTML='<div class="notice">לא ניתן לטעון את רכיבי החיבור. רענן את הדף.</div>';return}
+  const app=FB.initializeApp(FIREBASE_CONFIG),auth=FB.getAuth(app);
+  let fs;try{fs=FB.initializeFirestore(app,{localCache:FB.persistentLocalCache({tabManager:FB.persistentMultipleTabManager()})})}catch(e){fs=FB.initializeFirestore(app,{})}
+  FB.getRedirectResult(auth).catch(e=>showLogin(authMsg(e)));
+  const provider=new FB.GoogleAuthProvider();
+  $('#loginBtn').addEventListener('click',async()=>{
+    $('#loginErr').textContent='';
+    try{await FB.signInWithPopup(auth,provider)}
+    catch(e){
+      if(e&&(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment')){try{await FB.signInWithRedirect(auth,provider)}catch(x){showLogin(authMsg(x))}}
+      else if(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request')){}
+      else showLogin(authMsg(e));
+    }
+  });
+  $('#signOutBtn').addEventListener('click',async()=>{try{await FB.signOut(auth)}catch(e){}location.reload()});
+  FB.onAuthStateChanged(auth,user=>{
+    if(!user){showLogin();return}
+    $('#login').hidden=true;$('#signOutBtn').hidden=false;
+    if(startedFor===user.uid)return;startedFor=user.uid;
+    start(makeDb(fs,user.uid));
+  });
 }
-if(window.claude&&claude.use)boot();else $('#view').innerHTML='<div class="notice">הדף צריך לרוץ בתוך Claude.</div>';
+function authMsg(e){
+  const c=e&&e.code||'';
+  if(c==='auth/unauthorized-domain')return 'הכתובת של האתר עדיין לא אושרה ב-Firebase (Authorized domains).';
+  if(c==='auth/network-request-failed')return 'אין חיבור לרשת. נסה שוב.';
+  return 'הכניסה נכשלה. נסה שוב.';
+}
+function start(db){
+  S.db=db;
+  const nodb=()=>{$('#view').innerHTML='<div class="notice">אין גישה למסד הנתונים. נסה לרענן או להתחבר מחדש.</div>'};
+  db.collection('spaces').onSnapshot(sn=>{S.spaces=sn.docs.map(d=>({id:d.id,...d.data()}));sortSpaces();if(!S.loaded.s){const r=lsGet('ms.route',null);if(r&&(r.type==='space'?spaceOf(r.id):['today','dash','goals'].includes(r.type))){S.route=r;C.scope=r.type==='space'?r.id:'all'}}S.loaded.s=true;render();syncScope()},nodb);
+  db.collection('tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();autoFail()},nodb);
+  db.collection('goals').onSnapshot(sn=>{S.goals=sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));S.loaded.g=true;render()},nodb);
+  db.collection('logs').onSnapshot(sn=>{S.logs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.l=true;render()},nodb);
+}
+boot();
 })();
-</script>
+</script></body></html>
