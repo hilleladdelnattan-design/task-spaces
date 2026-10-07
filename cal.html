@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4a55d0">
+<title>לוח משימות</title>
+<style>
+:root{--bg:#f6f7fb;--surface:#fff;--ink:#1b1d2a;--muted:#6b7086;--line:#e3e5ef;--accent:#4a55d0;--accent-soft:#eceefe;--red:#d63a3a;--red-soft:#fdeaea;--shadow:0 10px 40px rgba(20,24,60,.25);--r:14px}
+@media(prefers-color-scheme:dark){:root{--bg:#12131a;--surface:#1c1e29;--ink:#eceef7;--muted:#9aa0b8;--line:#2b2e3d;--accent:#8a94ff;--accent-soft:#262a4a;--red:#ff6b6b;--red-soft:#3a2024;--shadow:0 10px 40px rgba(0,0,0,.6)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1000px;margin:0 auto;padding:12px 12px calc(28px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mtitle{flex:1;text-align:center;font-size:20px;font-weight:700;margin:0}
+.ibtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:22px;line-height:1;flex:none}
+.tbtn{height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.pbtn{height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600}
+.dbtn{height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--red);background:var(--red);color:#fff;font-weight:600}
+.main{display:grid;gap:14px}
+@media(min-width:900px){.main{grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);align-items:start}}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow div{text-align:center;color:var(--muted);font-size:12px;padding:2px 0 6px}
+.cell{min-height:86px;border:1px solid var(--line);border-radius:10px;padding:3px;background:var(--surface);display:flex;flex-direction:column;gap:1px;text-align:start;width:100%;overflow:hidden}
+.cell.empty{border:none;background:none;cursor:default}
+.cell.sel{border:2px solid var(--accent);padding:2px}
+.cell.today{background:var(--accent-soft)}
+.cell .n{font-size:12px;color:var(--muted);padding:0 2px}
+.cell.today .n{color:var(--accent);font-weight:800;font-size:13px}
+.cell .t{font-size:10.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.cell .t.red{color:var(--red);font-weight:600}
+.cell .t.done{color:var(--muted);text-decoration:line-through}
+.cell .more{font-size:10px;color:var(--accent);font-weight:600;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(min-width:640px){.cell{min-height:104px;padding:5px}.cell.sel{padding:4px}.cell .t{font-size:12px}.cell .more{font-size:11.5px}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.phead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.phead h2{margin:0;font-size:18px;flex:1;min-width:140px}
+.tag{font-size:12px;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 8px;margin-inline-start:6px;font-weight:600;vertical-align:middle}
+.empty-note{color:var(--muted);padding:18px 4px}
+.row{display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-top:1px solid var(--line)}
+.chk{width:44px;height:44px;flex:none;display:grid;place-items:center;background:none;border:none;padding:0}
+.chk i{width:26px;height:26px;border-radius:8px;border:2px solid var(--muted);display:grid;place-items:center;font-style:normal;font-size:17px;line-height:1;color:#fff}
+.row.done .chk i{background:var(--accent);border-color:var(--accent)}
+.row.missed .chk i{border-color:var(--red)}
+.row.moved .chk i{border-color:var(--red);background:var(--red-soft);color:var(--red);font-size:12px}
+.rbody{flex:1;min-width:0;padding-top:9px}
+.rtitle{font-size:16px;word-break:break-word}
+.row.done .rtitle{color:var(--muted);text-decoration:line-through}
+.row.missed .rtitle,.row.moved .rtitle{color:var(--red);font-weight:600}
+.meta{font-size:13px;color:var(--muted);margin-top:2px}
+.meta.red{color:var(--red)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.sbtn{height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:14px}
+.sbtn.red{border-color:var(--red);color:var(--red)}
+.kebab{width:44px;height:44px;flex:none;border-radius:12px;border:none;background:none;font-size:22px;color:var(--muted)}
+.foot{text-align:center;margin-top:18px}
+.link{background:none;border:none;color:var(--muted);text-decoration:underline;padding:10px}
+.mback{position:fixed;inset:0;background:rgba(10,12,30,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+@media(min-width:640px){.mback{align-items:center}}
+.sheet{background:var(--surface);width:100%;max-width:480px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+@media(min-width:640px){.sheet{border-radius:20px}}
+.mhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mhead h2{margin:0;font-size:18px;flex:1}
+.fld{display:block;margin:12px 0 0;font-size:14px;color:var(--muted)}
+.fld input[type=text],.fld input[type=date],.fld input[type=time]{display:block;width:100%;height:46px;margin-top:4px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font-size:16px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.seg button,.wd button{height:42px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.seg button[aria-pressed=true],.wd button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.wd{display:flex;gap:6px;margin-top:8px}
+.wd button{flex:1;padding:0;min-width:0}
+.err{color:var(--red);min-height:20px;margin-top:8px;font-size:14px}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.opts button{height:50px;border-radius:12px;border:1px solid var(--line);background:var(--surface);text-align:start;padding:0 14px;font-size:16px}
+.opts button.red{color:var(--red);border-color:var(--red)}
+.note{color:var(--muted);font-size:14px;margin:6px 0}
+#toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:90;display:none;max-width:90vw}
+.loginbox{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:100;padding:16px}
+.loginbox[hidden]{display:none}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 24px;max-width:380px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px}
+.lcard h1{margin:0;font-size:24px}
+.lcard p{margin:0;color:var(--muted)}
+.loading{text-align:center;color:var(--muted);padding:60px 0}
+</style></head><body>
+<div id="app"><div class="loading">טוען…</div></div>
+<div id="modalRoot"></div>
+<div id="toast" role="status"></div>
+<div class="loginbox" id="login" hidden><div class="lcard"><h1>לוח משימות</h1><p>כדי לראות את המשימות שלך, היכנס עם חשבון Google.</p><button class="pbtn" id="loginBtn" type="button">כניסה עם Google</button><p id="loginErr" role="alert"></p></div></div>
+<script src="fb.js"></script>
+<script>
+'use strict';
+/* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
+const TZ='Asia/Jerusalem';
+const MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const DOWN=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const DOWS=['א','ב','ג','ד','ה','ו','ש'];
+const pad=n=>String(n).padStart(2,'0');
+const _fmt=new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'});
+function todayIL(){const p=_fmt.formatToParts(new Date());const g=t=>p.find(x=>x.type===t).value;return g('year')+'-'+g('month')+'-'+g('day')}
+/* תאריכים הם מחרוזות "YYYY-MM-DD" (תאריך לוח בלבד). חישובים ב-UTC כדי שלא יושפעו משעון המכשיר או משעון קיץ */
+const P=s=>s.split('-').map(Number);
+const F=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
+function addDays(s,n){const [y,m,d]=P(s);const t=new Date(Date.UTC(y,m-1,d+n));return F(t.getUTCFullYear(),t.getUTCMonth()+1,t.getUTCDate())}
+function dowOf(s){const [y,m,d]=P(s);return new Date(Date.UTC(y,m-1,d)).getUTCDay()}
+function dim(y,m){return new Date(Date.UTC(y,m,0)).getUTCDate()}
+function addMonths(s,n){const [y,m,d]=P(s);const t=new Date(Date.UTC(y,m-1+n,1));const yy=t.getUTCFullYear(),mm=t.getUTCMonth()+1;return F(yy,mm,Math.min(d,dim(yy,mm)))}
+const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'')&&addDays(s,0)===s;
+const dm=s=>{const [,m,d]=P(s);return d+'/'+m};
+const longDay=s=>{const [,m,d]=P(s);return DOWN[dowOf(s)]+', '+d+' ב'+MONTHS[m-1]};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function occurrences(rule,from,to){const out=[];for(let d=from;d<=to;d=addDays(d,1)){const ok=rule.type==='daily'||(rule.type==='weekdays'&&rule.days.includes(dowOf(d)))||(rule.type==='monthdays'&&rule.days.includes(+d.slice(8)));if(ok)out.push(d)}return out}
+function status(t,today){if(t.movedTo)return 'moved';if(t.done)return 'done';if(t.date<today)return 'missed';return 'open'}
+const cmpT=(a,b)=>{const ta=a.time||'99:99',tb=b.time||'99:99';return ta<tb?-1:ta>tb?1:(a.createdAt||0)-(b.createdAt||0)};
+
+/* ===== מצב ===== */
+const $=s=>document.querySelector(s);
+const S={db:null,tasks:[],series:[],loaded:{t:false,s:false},month:todayIL().slice(0,7),sel:todayIL(),modal:null,dismissed:new Set(),lastToday:todayIL()};
+const T=id=>S.tasks.find(x=>x.id===id);
+const newId=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function clean(o){const r={};for(const k in o){if(k==='id'||o[k]===undefined)continue;r[k]=o[k]}return r}
+const save=(c,id,o)=>S.db.doc(c+'/'+id).set(clean(o));
+const del=(c,id)=>S.db.doc(c+'/'+id).delete();
+let toastT=0;
+function toast(m){const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>e.style.display='none',3200)}
+async function guard(fn){try{await fn()}catch(e){console.error(e);toast('הפעולה לא נשמרה. בדוק חיבור ונסה שוב.')}}
+
+/* ===== תצוגה ===== */
+function maxVisible(){return innerWidth<640?3:4}
+function render(){
+  const root=$('#app');
+  if(!S.loaded.t||!S.loaded.s){root.innerHTML='<div class="loading">טוען…</div>';return}
+  const today=todayIL();
+  const [y,m]=S.month.split('-').map(Number);
+  const by={};S.tasks.forEach(t=>{(by[t.date]=by[t.date]||[]).push(t)});Object.values(by).forEach(a=>a.sort(cmpT));
+  const lead=dowOf(F(y,m,1)),n=dim(y,m),MV=maxVisible();
+  let cells='';
+  for(let i=0;i<lead;i++)cells+='<div class="cell empty" aria-hidden="true"></div>';
+  for(let d=1;d<=n;d++){
+    const ds=F(y,m,d),list=by[ds]||[];
+    let items='';
+    const shown=list.length>MV?MV-1:list.length;
+    for(let i=0;i<shown;i++){const t=list[i],st=status(t,today);items+='<div class="t '+(st==='missed'||st==='moved'?'red':st==='done'?'done':'')+'">'+esc(t.title)+'</div>'}
+    if(list.length>shown)items+='<div class="more">+'+(list.length-shown)+' משימות</div>';
+    cells+='<button type="button" class="cell'+(ds===today?' today':'')+(ds===S.sel?' sel':'')+'" data-act="sel" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+' משימות"'+(ds===S.sel?' aria-current="date"':'')+'><span class="n">'+d+'</span>'+items+'</button>';
+  }
+  const dow=DOWS.map(x=>'<div>'+x+'</div>').join('');
+  const dayList=(by[S.sel]||[]);
+  let rows='';
+  dayList.forEach(t=>{
+    const st=status(t,today);
+    const chkInner=st==='done'?'✓':st==='moved'?'●':'';
+    let meta=[];
+    if(t.time)meta.push(esc(t.time));
+    if(t.seriesId)meta.push('חוזרת');
+    let metaHtml=meta.length?'<div class="meta">'+meta.join(' · ')+'</div>':'';
+    if(t.movedTo)metaHtml+='<div class="meta red">הועבר ל־'+dm(t.movedTo)+'</div>';
+    if(t.movedFrom)metaHtml+='<div class="meta">הועבר מ־'+dm(t.movedFrom)+'</div>';
+    let acts='';
+    if(st==='missed'&&!t.kept)acts='<div class="acts"><button class="sbtn" data-act="keep" data-id="'+t.id+'">השאר ביום המקורי</button><button class="sbtn red" data-act="mv" data-id="'+t.id+'">העבר ליום אחר</button></div>';
+    else if(st==='missed')acts='<div class="acts"><button class="sbtn red" data-act="mv" data-id="'+t.id+'">העבר ליום אחר</button></div>';
+    const dis=st==='moved';
+    rows+='<div class="row '+st+'"><button type="button" class="chk" data-act="tog" data-id="'+t.id+'" role="checkbox" aria-checked="'+(st==='done')+'" aria-label="סימון '+esc(t.title)+'"'+(dis?' disabled':'')+'><i>'+chkInner+'</i></button><div class="rbody"><div class="rtitle">'+esc(t.title)+'</div>'+metaHtml+acts+'</div><button type="button" class="kebab" data-act="menu" data-id="'+t.id+'" aria-label="תפריט משימה">⋮</button></div>';
+  });
+  const panel='<section class="panel" id="panel" aria-live="polite"><div class="phead"><h2>'+esc(longDay(S.sel))+(S.sel===today?'<span class="tag">היום</span>':'')+'</h2><button type="button" class="pbtn" data-act="add">+ הוסף משימה</button></div>'+(rows||'<div class="empty-note">אין משימות ליום הזה.</div>')+'</section>';
+  root.innerHTML='<div class="wrap"><div class="top"><button type="button" class="ibtn" data-act="prev" aria-label="חודש קודם">›</button><h1 class="mtitle">'+MONTHS[m-1]+' '+y+'</h1><button type="button" class="tbtn" data-act="today">היום</button><button type="button" class="ibtn" data-act="next" aria-label="חודש הבא">‹</button></div><div class="main"><div class="cal"><div class="dow" aria-hidden="true">'+dow+'</div><div class="grid">'+cells+'</div></div>'+panel+'</div><div class="foot"><button type="button" class="link" data-act="signout">יציאה</button></div></div>';
+}
+function go(month,sel){S.month=month;S.sel=sel;render()}
+function shiftMonth(k){const s=addMonths(S.month+'-01',k);const mk=s.slice(0,7);const t=todayIL();go(mk,t.slice(0,7)===mk?t:mk+'-01')}
+
+/* ===== חלונות ===== */
+function modal(m){S.modal=m;renderModal()}
+function closeModal(){S.modal=null;$('#modalRoot').innerHTML=''}
+function sheet(title,body,opts){return '<div class="mback" data-act="mbg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="mhead"><h2>'+esc(title)+'</h2><button type="button" class="ibtn" data-act="mclose" aria-label="סגירה">✕</button></div>'+body+'</div></div>'}
+function renderModal(){
+  const m=S.modal,root=$('#modalRoot');
+  if(!m){root.innerHTML='';return}
+  let h='';
+  if(m.type==='sheet'){
+    const t=T(m.id);if(!t){closeModal();return}
+    h=sheet(t.title,'<div class="opts">'+(t.movedTo?'':'<button type="button" data-act="m-edit">עריכה</button>')+'<button type="button" class="red" data-act="m-del">מחיקה</button><button type="button" data-act="mclose">ביטול</button></div>');
+  }else if(m.type==='scope'){
+    const t=T(m.id);if(!t){closeModal();return}
+    h=sheet(m.op==='edit'?'עריכת משימה חוזרת':'מחיקת משימה חוזרת','<p class="note">«'+esc(t.title)+'» — '+esc(longDay(t.date))+'</p><div class="opts"><button type="button" data-act="scope-one">רק המופע הזה</button><button type="button" data-act="scope-from">מהמופע הזה והלאה</button><button type="button" data-act="mclose">ביטול</button></div><p class="note">ימים שכבר עברו לא ישתנו.</p>');
+  }else if(m.type==='confirm'){
+    const t=T(m.id);if(!t){closeModal();return}
+    h=sheet('מחיקת משימה','<p class="note">למחוק את «'+esc(t.title)+'»?</p><div class="mfoot"><button type="button" class="tbtn" data-act="mclose">ביטול</button><button type="button" class="dbtn" data-act="del-yes">מחיקה</button></div>');
+  }else if(m.type==='move'){
+    const t=T(m.id);if(!t){closeModal();return}
+    const today=todayIL();
+    h=sheet('העברה ליום אחר','<p class="note">«'+esc(t.title)+'» — כרגע ב־'+dm(t.date)+'</p><label class="fld">לאיזה תאריך להעביר?<input type="date" id="mv_date" min="'+today+'" value="'+esc(m.date||today)+'"></label><div class="err" id="mv_err" role="alert"></div><div class="mfoot"><button type="button" class="tbtn" data-act="mclose">ביטול</button><button type="button" class="pbtn" data-act="mv-go">העבר</button></div>');
+  }else if(m.type==='cont'){
+    const s=S.series.find(x=>x.id===m.sid);if(!s){closeModal();return}
+    h=sheet('להמשיך משימה חוזרת?','<p class="note">המשימה החוזרת «'+esc(s.title)+'» מוגדרת עד '+dm(s.through)+'. להמשיך אותה גם לחודש הבא?</p><div class="opts"><button type="button" data-act="cont-yes">כן, להמשיך</button><button type="button" class="red" data-act="cont-no">לא, לסיים</button><button type="button" data-act="cont-later">שאל אותי אחר כך</button></div>');
+  }else if(m.type==='form'){
+    const v=m.vals,r=m.rec,create=m.mode==='create',from=m.scope==='from';
+    let rec='';
+    if(create){
+      const opt=(k,l)=>'<button type="button" data-act="rt" data-k="'+k+'" aria-pressed="'+(r.type===k)+'">'+l+'</button>';
+      rec='<div class="fld">חזרתיות<div class="seg" role="group" aria-label="חזרתיות">'+opt('none','לא חוזרת')+opt('daily','כל יום')+opt('weekdays','ימים בשבוע')+opt('monthdays','תאריכים בחודש')+'</div></div>';
+      if(r.type==='weekdays')rec+='<div class="wd" role="group" aria-label="ימי השבוע">'+DOWS.map((l,i)=>'<button type="button" data-act="wd" data-i="'+i+'" aria-pressed="'+r.days.includes(i)+'" aria-label="יום '+DOWN[i]+'">'+l+'</button>').join('')+'</div>';
+      if(r.type==='monthdays')rec+='<label class="fld">באילו תאריכים בחודש? (למשל 1, 10, 20)<input type="text" inputmode="numeric" id="f_md" value="'+esc(m.mdText||'')+'" autocomplete="off"></label>';
+      if(r.type!=='none')rec+='<p class="note">נוצרות משימות לחודש הקרוב. לפני שהן נגמרות תישאל אם להמשיך.</p>';
+    }
+    const title=create?'משימה חדשה':from?'עריכה — מהמופע הזה והלאה':'עריכת משימה';
+    h=sheet(title,'<form id="f_form" novalidate><label class="fld">שם המשימה<input type="text" id="f_title" value="'+esc(v.title)+'" maxlength="120" autocomplete="off"></label>'+(from?'<p class="note">השינוי יחול על המופע הזה ועל כל המופעים הבאים.</p>':'<label class="fld">תאריך<input type="date" id="f_date" value="'+esc(v.date)+'"></label>')+'<label class="fld">שעה (לא חובה)<input type="time" id="f_time" value="'+esc(v.time)+'"></label>'+rec+'<div class="err" id="f_err" role="alert"></div><div class="mfoot"><button type="button" class="tbtn" data-act="mclose">ביטול</button><button type="submit" class="pbtn">שמירה</button></div></form>');
+  }
+  root.innerHTML=h;
+  const f=$('#f_title');if(f&&m.type==='form'&&!m.noFocus){f.focus()}
+}
+function collectForm(){
+  const m=S.modal;if(!m||m.type!=='form')return;
+  const g=id=>{const e=$('#'+id);return e?e.value:undefined};
+  if(g('f_title')!==undefined)m.vals.title=g('f_title');
+  if(g('f_date')!==undefined)m.vals.date=g('f_date');
+  if(g('f_time')!==undefined)m.vals.time=g('f_time');
+  if(g('f_md')!==undefined)m.mdText=g('f_md');
+}
+function rerenderForm(){collectForm();S.modal.noFocus=true;renderModal()}
+
+/* ===== פעולות על נתונים ===== */
+async function createTask(v,rec){
+  const title=v.title.trim(),time=v.time||'';
+  if(rec.type==='none'){await save('cal_tasks',newId(),{title,time,date:v.date,done:false,createdAt:Date.now()});return}
+  const through=addDays(addMonths(v.date,1),-1);
+  const dates=occurrences(rec,v.date,through);
+  if(!dates.length)throw new Error('no-dates');
+  const sid=newId(),now=Date.now();
+  await save('cal_series',sid,{title,time,type:rec.type,days:rec.days,start:v.date,through,ended:false,createdAt:now});
+  await Promise.all(dates.map((d,i)=>save('cal_tasks',sid+'_'+d,{title,time,date:d,done:false,seriesId:sid,createdAt:now+i})));
+}
+async function editTask(id,scope,v){
+  const t=T(id);if(!t)return;
+  const title=v.title.trim(),time=v.time||'';
+  if(scope==='from'&&t.seriesId){
+    const list=S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=t.date&&!x.movedTo);
+    await Promise.all(list.map(x=>save('cal_tasks',x.id,{...x,title,time})));
+    const s=S.series.find(x=>x.id===t.seriesId);if(s)await save('cal_series',s.id,{...s,title,time});
+  }else{
+    await save('cal_tasks',id,{...t,title,time,date:v.date});
+  }
+}
+async function deleteTask(id,scope){
+  const t=T(id);if(!t)return;
+  if(scope==='from'&&t.seriesId){
+    const list=S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=t.date);
+    await Promise.all(list.map(x=>del('cal_tasks',x.id)));
+    const s=S.series.find(x=>x.id===t.seriesId);
+    if(s){const prev=addDays(t.date,-1);await save('cal_series',s.id,{...s,ended:true,through:s.through<prev?s.through:prev})}
+    return;
+  }
+  if(t.movedFromId){const o=T(t.movedFromId);if(o){const {movedTo,movedToId,...rest}=o;await save('cal_tasks',o.id,rest)}}
+  if(t.movedToId){const c=T(t.movedToId);if(c){const {movedFrom,movedFromId,...rest}=c;await save('cal_tasks',c.id,rest)}}
+  await del('cal_tasks',id);
+}
+async function moveTask(id,nd){
+  const t=T(id);if(!t)return;
+  const nid=newId();
+  await save('cal_tasks',nid,{title:t.title,time:t.time||'',date:nd,done:false,movedFrom:t.date,movedFromId:t.id,...(t.seriesId?{seriesId:t.seriesId}:{}),createdAt:Date.now()});
+  await save('cal_tasks',t.id,{...t,movedTo:nd,movedToId:nid});
+}
+async function continueSeries(s){
+  const today=todayIL();
+  const from=addDays(s.through,1)>today?addDays(s.through,1):today;
+  const through=addDays(addMonths(from,1),-1);
+  const dates=occurrences(s,from,through).filter(d=>!T(s.id+'_'+d));
+  const now=Date.now();
+  await Promise.all(dates.map((d,i)=>save('cal_tasks',s.id+'_'+d,{title:s.title,time:s.time||'',date:d,done:false,seriesId:s.id,createdAt:now+i})));
+  await save('cal_series',s.id,{...s,through});
+}
+function checkSeries(){
+  if(S.modal||!S.loaded.t||!S.loaded.s)return;
+  const lim=todayIL();
+  const s=S.series.find(x=>!x.ended&&lim>=addDays(x.through,-6)&&!S.dismissed.has(x.id));
+  if(s)modal({type:'cont',sid:s.id});
+}
+
+/* ===== אירועים ===== */
+function openForm(mode,o){
+  const rec={type:'none',days:[]};
+  modal({type:'form',mode,id:o.id,scope:o.scope,vals:{title:o.title||'',date:o.date,time:o.time||''},rec,mdText:''});
+}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,id=el.dataset.id;
+  if(a==='mbg'){if(e.target===el)closeModal();return}
+  if(a==='mclose'){closeModal();return}
+  if(a==='prev'){shiftMonth(-1);return}
+  if(a==='next'){shiftMonth(1);return}
+  if(a==='today'){const t=todayIL();go(t.slice(0,7),t);return}
+  if(a==='sel'){S.sel=el.dataset.d;render();if(innerWidth<900){const p=$('#panel');if(p&&p.scrollIntoView)p.scrollIntoView({block:'nearest',behavior:'smooth'})}return}
+  if(a==='add'){openForm('create',{date:S.sel});return}
+  if(a==='tog'){const t=T(id);if(t&&!t.movedTo)guard(()=>save('cal_tasks',id,{...t,done:!t.done,doneAt:t.done?0:Date.now()}));return}
+  if(a==='menu'){modal({type:'sheet',id});return}
+  if(a==='keep'){const t=T(id);if(t)guard(()=>save('cal_tasks',id,{...t,kept:true}));return}
+  if(a==='mv'){modal({type:'move',id});return}
+  if(a==='signout'){S.signOut&&S.signOut();return}
+  const m=S.modal;if(!m)return;
+  if(a==='m-edit'){const t=T(m.id);if(!t)return;if(t.seriesId)modal({type:'scope',id:t.id,op:'edit'});else{closeModal();openForm('edit',{id:t.id,scope:'one',title:t.title,date:t.date,time:t.time})}return}
+  if(a==='m-del'){const t=T(m.id);if(!t)return;if(t.seriesId)modal({type:'scope',id:t.id,op:'delete'});else modal({type:'confirm',id:t.id});return}
+  if(a==='scope-one'||a==='scope-from'){
+    const scope=a==='scope-one'?'one':'from',t=T(m.id);if(!t)return;
+    if(m.op==='edit'){openForm('edit',{id:t.id,scope,title:t.title,date:t.date,time:t.time})}
+    else{closeModal();guard(()=>deleteTask(t.id,scope))}
+    return}
+  if(a==='del-yes'){const i=m.id;closeModal();guard(()=>deleteTask(i,'one'));return}
+  if(a==='rt'){collectForm();m.rec={type:el.dataset.k,days:m.rec.days};rerenderForm();return}
+  if(a==='wd'){collectForm();const i=+el.dataset.i,d=m.rec.days;m.rec.days=d.includes(i)?d.filter(x=>x!==i):[...d,i].sort();rerenderForm();return}
+  if(a==='mv-go'){
+    const nd=$('#mv_date').value,t=T(m.id),err=$('#mv_err');
+    if(!t)return;
+    if(!isDate(nd)){err.textContent='בחר תאריך.';return}
+    if(nd<todayIL()){err.textContent='אפשר להעביר רק להיום או לתאריך עתידי.';return}
+    if(nd===t.date){err.textContent='זה התאריך הנוכחי של המשימה.';return}
+    const i=m.id;closeModal();guard(async()=>{await moveTask(i,nd);S.sel=nd;S.month=nd.slice(0,7);render()});return}
+  if(a==='cont-yes'){const s=S.series.find(x=>x.id===m.sid);closeModal();if(s)guard(()=>continueSeries(s));return}
+  if(a==='cont-no'){const s=S.series.find(x=>x.id===m.sid);closeModal();if(s)guard(()=>save('cal_series',s.id,{...s,ended:true}));return}
+  if(a==='cont-later'){S.dismissed.add(m.sid);closeModal();return}
+});
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='f_form')return;
+  e.preventDefault();
+  collectForm();
+  const m=S.modal,v=m.vals,err=$('#f_err');
+  if(!v.title.trim()){err.textContent='כתוב שם למשימה.';return}
+  if(m.scope!=='from'&&!isDate(v.date)){err.textContent='בחר תאריך.';return}
+  if(m.mode==='create'){
+    const r=m.rec;
+    if(r.type==='weekdays'&&!r.days.length){err.textContent='בחר לפחות יום אחד בשבוע.';return}
+    if(r.type==='monthdays'){
+      const nums=[...new Set((m.mdText||'').split(/[^0-9]+/).filter(Boolean).map(Number))].filter(n=>n>=1&&n<=31).sort((a,b)=>a-b);
+      if(!nums.length){err.textContent='כתוב תאריכים בין 1 ל־31, למשל 1, 10, 20.';return}
+      r.days=nums;
+    }
+    const rec={type:r.type,days:r.days};
+    closeModal();
+    guard(async()=>{try{await createTask(v,rec)}catch(x){if(x&&x.message==='no-dates'){toast('אין תאריך מתאים בחודש הקרוב.');return}throw x}S.sel=v.date;S.month=v.date.slice(0,7);render()});
+  }else{
+    const id=m.id,sc=m.scope;closeModal();
+    guard(async()=>{await editTask(id,sc,v);if(sc!=='from'&&isDate(v.date)){S.sel=v.date;S.month=v.date.slice(0,7);render()}});
+  }
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal)closeModal()});
+addEventListener('resize',()=>{if(S.loaded.t)render()});
+function tick(){const t=todayIL();if(t!==S.lastToday){S.lastToday=t;render();checkSeries()}}
+setInterval(tick,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
+
+/* ===== חיבור ל-Firebase (אותו פרויקט, אוספים חדשים: cal_tasks, cal_series) ===== */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyBHFzVCyBt05MZ0RdXPNIEJLtd_5b6P9OA",
+  authDomain:"task-spaces.firebaseapp.com",
+  projectId:"task-spaces",
+  storageBucket:"task-spaces.firebasestorage.app",
+  messagingSenderId:"516630524613",
+  appId:"1:516630524613:web:ce72bf471e519e72af36ac"
+};
+function makeDb(fs,uid){
+  return {
+    collection:c=>({onSnapshot:(ok,err)=>FB.onSnapshot(FB.collection(fs,'users',uid,c),sn=>ok({docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))}),err)}),
+    doc:p=>{const [c,id]=p.split('/');const r=FB.doc(fs,'users',uid,c,id);return {set:d=>FB.setDoc(r,d),delete:()=>FB.deleteDoc(r)}}
+  };
+}
+function showLogin(msg){$('#login').hidden=false;$('#loginErr').textContent=msg||''}
+function authMsg(e){const c=e&&e.code||'';if(c==='auth/unauthorized-domain')return 'הכתובת של האתר עדיין לא אושרה ב-Firebase.';if(c==='auth/network-request-failed')return 'אין חיבור לרשת. נסה שוב.';return 'הכניסה נכשלה. נסה שוב.'}
+let startedFor=null;
+function boot(){
+  if(!window.FB){$('#app').innerHTML='<div class="loading">לא ניתן לטעון את רכיבי החיבור. רענן את הדף.</div>';return}
+  const app=FB.initializeApp(FIREBASE_CONFIG),auth=FB.getAuth(app);
+  let fs;try{fs=FB.initializeFirestore(app,{localCache:FB.persistentLocalCache({tabManager:FB.persistentMultipleTabManager()})})}catch(e){fs=FB.initializeFirestore(app,{})}
+  FB.getRedirectResult(auth).catch(e=>showLogin(authMsg(e)));
+  const provider=new FB.GoogleAuthProvider();
+  $('#loginBtn').addEventListener('click',async()=>{
+    $('#loginErr').textContent='';
+    try{await FB.signInWithPopup(auth,provider)}
+    catch(e){
+      if(e&&(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment')){try{await FB.signInWithRedirect(auth,provider)}catch(x){showLogin(authMsg(x))}}
+      else if(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request')){}
+      else showLogin(authMsg(e));
+    }
+  });
+  S.signOut=async()=>{try{await FB.signOut(auth)}catch(e){}location.reload()};
+  FB.onAuthStateChanged(auth,user=>{
+    if(!user){showLogin();return}
+    $('#login').hidden=true;
+    if(startedFor===user.uid)return;startedFor=user.uid;
+    start(makeDb(fs,user.uid));
+  });
+}
+function start(db){
+  S.db=db;
+  const bad=()=>{$('#app').innerHTML='<div class="loading">אין גישה למסד הנתונים. נסה לרענן או להתחבר מחדש.</div>'};
+  db.collection('cal_series').onSnapshot(sn=>{S.series=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.s=true;render();checkSeries()},bad);
+  db.collection('cal_tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();checkSeries()},bad);
+}
+boot();
+</script></body></html>
