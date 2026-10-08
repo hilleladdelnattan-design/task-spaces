@@ -1,0 +1,19 @@
+{
+  "name": "לוח משימות",
+  "short_name": "משימות",
+  "description": "לוח משימות ויומן אישי",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/cal.html",
+  "scope": "/",
+  "id": "/cal.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f8fc",
+  "theme_color": "#4a55d0",
+  "icons": [
+    {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
