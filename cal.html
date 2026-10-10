@@ -87,6 +87,7 @@ body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .lane{position:absolute;top:0;bottom:0;inset-inline-start:52px;inset-inline-end:0}
 .dind{position:absolute;right:0;left:0;background:var(--accent-soft);outline:2px dashed var(--accent);outline-offset:-2px;border-radius:10px;pointer-events:none;z-index:4;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;font-size:13px;font-weight:700;color:var(--accent)}
 .nt{position:sticky;bottom:0;margin-top:14px;background:var(--surface);border-top:2px solid var(--line);border-radius:16px 16px 0 0;padding:8px 10px calc(10px + env(safe-area-inset-bottom));max-height:40vh;overflow:auto;box-shadow:0 -6px 20px rgba(20,24,60,.08);z-index:6}
+.nt.full{position:relative;max-height:none;overflow:visible}
 .ntn.over{background:var(--accent-soft);outline:2px dashed var(--accent);outline-offset:-2px;border-radius:10px}
 .nth{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
 .nth span{flex:1}
@@ -436,16 +437,19 @@ const EN={
 'ההתנתקות לא מוחקת משימות, יעדים או היסטוריה.':'Logging out does not delete tasks, goals or history.','מה חדש?':'What’s new?',
 'הכתובת של האתר עדיין לא אושרה ב-Firebase.':'This site’s address is not yet approved in Firebase.','אין חיבור לרשת. נסה שוב.':'No network connection. Try again.','הכניסה נכשלה. נסה שוב.':'Sign-in failed. Try again.',
 'לא ניתן לטעון את רכיבי החיבור. רענן את הדף.':'Could not load the connection components. Refresh the page.','אין גישה למסד הנתונים. נסה לרענן או להתחבר מחדש.':'No access to the database. Try refreshing or signing in again.',
+'מחיקת היעד':'Delete goal','מחיקת יעד':'Delete goal','למחוק את היעד':'Delete the goal',
+'המשימות שתוכננו ליעד יישארו ביומן כמשימות רגילות. העדכונים הידניים של היעד יימחקו.':'Tasks planned for this goal stay in the calendar as regular tasks. The goal’s manual updates will be deleted.',
+'היעד נמחק. המשימות שלו נשארו ביומן.':'Goal deleted. Its tasks stay in the calendar.',
 /* חידושים */
 'העברת משימה':'Moving a task','בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.':'In a task’s ⋮ menu on the day screen choose “Move”, then drag or tap a date in the calendar. Only the date changes.',
-'כל המשימות ביום':'All of a day’s tasks','בלחיצה על "עוד" בתא של יום, התא נפתח ומראה את כל המשימות שלו.':'Tap “more” in a day cell and the cell opens to show all of its tasks.',
+'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש "עוד". לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows “more”. Tap it to open the cell and see all of its tasks.',
 'מסך יום מסודר יותר':'A tidier day screen','"משימות כלליות" ו"יעדים" מתקפלים ונפתחים מהכותרת שלהם, ונפתחים לבד כשמגיעים לסוף הציר.':'“General tasks” and “Goals” collapse and open from their headers, and open by themselves when you reach the end of the timeline.',
-'יעדים קומפקטיים':'Compact goals','כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך, להסיר מהפעילים או להעביר לארכיון.':'Each goal is one row. Tap to open the details, and use the ⋮ menu to edit, remove from the active goals, or archive.',
+'יעדים קומפקטיים':'Compact goals','כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך או למחוק.':'Each goal is one row. Tap to open the details, and use the ⋮ menu to edit or delete it.',
 'מצב בהיר וכהה':'Light and dark mode','בהגדרות ⚙️ אפשר לבחור בהיר, כהה או אוטומטי לפי המכשיר.':'In Settings ⚙️ you can choose light, dark, or automatic (follows your device).',
 'עברית ואנגלית':'Hebrew and English','בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.':'In Settings ⚙️ you can switch language. The tasks and goals you wrote are not translated.'
 };
 /* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
-const VERSION='0.5.1';
+const VERSION='0.5.3';
 /* ===== העדפות (מראה ושפה): נשמרות במכשיר ב-localStorage. מפתח חדש ונפרד, שום נתון קיים לא נוגע ===== */
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
@@ -621,7 +625,8 @@ function renderMonth(){
     /* כל המשימות מצוירות תמיד. מה שמעבר למקום בתא מוסתר ב-CSS ונחשף בלחיצה על "עוד" (כך אפשר לכווץ בלי לצייר מחדש, גם באמצע גרירה) */
     const shown=list.length>MV?MV-1:list.length;
     for(let i=0;i<list.length;i++){const t=list[i],st=status(t,today);items+='<div class="t '+(st==='missed'||st==='moved'?'bad':st==='done'?'ok':'')+(i>=shown?' ovf':'')+'"'+(st==='moved'?'':' data-tid="'+t.id+'"')+'>'+esc(t.title)+'</div>'}
-    if(list.length>shown)items+='<span class="more" data-act="more" data-d="'+ds+'" role="button" aria-expanded="'+(xd===ds)+'"><span class="mc"><span class="ltr">+'+(list.length-shown)+('</span> '+_('עוד')+' ⌄</span><span class="ml">'+_('פחות')+' ⌃</span></span>');
+    /* "עוד" מופיע בכל יום שיש בו לפחות משימה אחת (גם כשאין משימות מוסתרות) */
+    if(list.length)items+='<span class="more" data-act="more" data-d="'+ds+'" role="button" aria-expanded="'+(xd===ds)+'"><span class="mc">'+(list.length>shown?'<span class="ltr">+'+(list.length-shown)+'</span> ':'')+_('עוד')+' ⌄</span><span class="ml">'+_('פחות')+' ⌃</span></span>';
     const mvc=mvT?(ds<today?' mvno':ds===mvT.date?' mvown':' mvok'):'';
     cells+='<button type="button" class="cell'+(ds===today?' today':'')+(ds===S.sel?' sel':'')+(xd===ds?' xp':'')+mvc+'" data-act="day" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+(' '+_('משימות')+'"><span class="n">')+d+'</span>'+items+'</button>';
   }
@@ -680,7 +685,7 @@ function renderDay(){
   timed.forEach(t=>{const [s,e]=spanOf(t);for(let h=Math.floor(s/60);h<=Math.floor((Math.min(e,1440)-1)/60);h++)occ.add(h)});
   S.tl={lo,occ,exp:null};
   const blocks=layoutDay(timed).map(x=>taskHtml(x.t,today,{blk:{s:x.s,e:x.e,top:yOfMin(x.s)+1,h:yOfMin(x.e)-yOfMin(x.s)-2,r:x.col*100/x.cols,w:100/x.cols,narrow:x.cols>=2}})).join('');
-  const nt=('<div class="nt" id="nt"><div class="ntn" id="ntn" data-drop="none"><div class="nth"><span>'+_('ללא שעה')+'</span></div>')+(untimed.length?'<div class="ns">'+untimed.map(t=>taskHtml(t,today)).join('')+'</div>':('<div class="none">'+_('אין משימות בלי שעה')+'</div>'))+'</div>'+dayGeneralHtml(today)+dayGoalsHtml()+'</div>';
+  const nt=('<div class="nt'+(S.dayUI.gen&&S.dayUI.goals?' full':'')+'" id="nt"><div class="ntn" id="ntn" data-drop="none"><div class="nth"><span>'+_('ללא שעה')+'</span></div>')+(untimed.length?'<div class="ns">'+untimed.map(t=>taskHtml(t,today)).join('')+'</div>':('<div class="none">'+_('אין משימות בלי שעה')+'</div>'))+'</div>'+dayGeneralHtml(today)+dayGoalsHtml()+'</div>';
   return ('<div class="wrap"><div class="dtop"><button type="button" class="tlink" data-act="back">📅 '+_('חזרה ללוח')+'</button><button type="button" class="pbtn sm" data-act="add">＋ '+_('הוסף משימה')+'</button></div><div class="dnav"><button type="button" class="arr" data-act="dprev" aria-label="'+_('יום קודם')+'"><span class="ltr">')+(LANG==='en'?'‹':'›')+'</span></button><div class="dtitle"><small>'+DOWN[dowOf(d)]+'</small><h1>'+esc(dayName(d))+(d===today?('<span class="tag">'+_('היום')+'</span>'):'')+('</h1></div><button type="button" class="arr" data-act="dnext" aria-label="'+_('יום הבא')+'"><span class="ltr">')+(LANG==='en'?'›':'‹')+'</span></button></div><div class="dsum">'+summary(list)+'</div><div class="tl" id="tl" style="height:'+yOfMin(1440)+'px"><div id="glines">'+linesHtml()+'</div><div class="lane" id="lane">'+blocks+'</div></div>'+nt+'</div>';
 }
 
@@ -898,7 +903,7 @@ function renderModal(){
     const t=T(m.id);if(!t){closeModal();return}
     const when=t.general?_('משימה כללית'):esc(longDay(t.date))+(t.time?' · <span class="ltr">'+esc(t.time)+(endMin(t)!==null?'–'+esc(t.endTime):'')+'</span>':'');
     h=sheet(_('פרטי המשימה'),'<div class="vtitle">'+esc(t.title)+'</div><div class="note">'+when+'</div><div class="vdet">'+esc(t.details||'')+('</div><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('סגירה')+'</button>')+(t.movedTo?'':('<button type="button" class="pbtn" data-act="view-edit">'+_('עריכה')+'</button>'))+'</div>');
-  }else if(m.type==='goal'||m.type==='glog'||m.type==='gdel'){
+  }else if(m.type==='goal'||m.type==='glog'||m.type==='gdel'||m.type==='gkill'){
     h=goalModalHtml(m);
   }
   root.innerHTML=h;
@@ -1358,10 +1363,11 @@ addEventListener('online',setNet);addEventListener('offline',setNet);setNet();
    תקופה חדשה = טווח תאריכים חדש, ולכן הספירה מתחילה מאפס. תקופות קודמות נשארות כהיסטוריה (שום דבר לא נמחק). */
 const gById=id=>S.goals.find(g=>g.id===id);
 /* מצבי יעד: פעיל (ברירת מחדל), הוסר מהפעילים (removed), בארכיון (archived). בשני המצבים הלא־פעילים כל הנתונים נשמרים: המשימות, הרשומות והיסטוריית התקופות */
-const gIsActive=g=>!g.archived&&!g.removed;
+const gIsActive=()=>true;
 const gSort=(a,b)=>(a.createdAt||0)-(b.createdAt||0);
-const gActive=()=>S.goals.filter(gIsActive).sort(gSort);
-const gInactive=()=>S.goals.filter(g=>!gIsActive(g)).sort(gSort);
+/* אין יעדים "לא פעילים" ואין ארכיון: כל היעדים מוצגים (גם כאלה שסומנו בעבר כהוסרו/בארכיון), ויעד שלא רוצים מוחקים */
+const gActive=()=>S.goals.slice().sort(gSort);
+const gInactive=()=>[];
 const pStart=(per,d)=>per==='week'?addDays(d,-dowOf(d)):d.slice(0,7)+'-01';
 const pEnd=(per,ps)=>per==='week'?addDays(ps,6):monthEnd(ps);
 const pNext=(per,ps)=>per==='week'?addDays(ps,7):addMonths(ps,1);
@@ -1400,6 +1406,14 @@ function addGoalLog(gid,date,sub,note){
   S.glog.push({id,...o});dbSet('cal_goal_log',id,o);
 }
 function delGoalLog(id){S.glog=S.glog.filter(l=>l.id!==id);dbDel('cal_goal_log',id)}
+/* מחיקת יעד: היעד והעדכונים הידניים שלו נמחקים. משימות שתוכננו לו נשארות ביומן כמשימות רגילות (רק הקישור ליעד מוסר) */
+function deleteGoal(id){
+  S.tasks.filter(t=>t.goalId===id).forEach(t=>updTask(t.id,{goalId:'',goalSub:''}));
+  S.glog.filter(l=>l.goalId===id).forEach(l=>delGoalLog(l.id));
+  S.goals=S.goals.filter(g=>g.id!==id);S.gOpen.delete(id);dbDel('cal_goals',id);
+  if(S.view==='goal'&&S.goalId===id)backToMonth();else render();
+  toast(_('היעד נמחק. המשימות שלו נשארו ביומן.'));
+}
 function updGoal(id,p){const g=gById(id);if(g)Object.assign(g,p);dbUpd('cal_goals',id,p)}
 function saveGoal(v,id){
   const title=v.title.trim(),desc=(v.desc||'').trim(),target=parseInt(v.target,10),subs=v.subs.map(s=>({id:s.id,name:s.name}));
@@ -1481,6 +1495,8 @@ function applyDayUI(){
     const e=$(sel);if(!e)return;e.classList.toggle('open',secOpen(k));
     const b=e.querySelector('.sechb');if(b)b.setAttribute('aria-expanded',secOpen(k));
   });
+  /* כששני החלקים פתוחים, התיבה התחתונה מוצגת במלואה (בלי הגבלת הגובה) והדף עצמו נגלל */
+  const nt=$('#nt');if(nt)nt.classList.toggle('full',secOpen('gen')&&secOpen('goals'));
 }
 function dayScrollCheck(){
   if(S.view!=='day')return;
@@ -1533,8 +1549,6 @@ function renderGoal(){
     let h=('<div class="wrap gscr"><div class="dtop"><button type="button" class="tlink" data-act="back">📅 '+_('חזרה ללוח')+'</button><button type="button" class="gbtn sm" data-act="g-edit" data-id="')+g.id+('">✏️ '+_('עריכה')+'</button></div>');
     h+='<h1 class="gtitle">🎯 '+esc(g.title)+'</h1><div class="gsub">'+_('יעד {p}',{p:perName(g.period)})+' · '+esc(String(st.target))+' '+perUnit(g.period)+'</div>';
     if(g.desc)h+='<div class="gdesc">'+esc(g.desc)+'</div>';
-    if(g.archived)h+=('<div class="note">'+_('היעד בארכיון. ההיסטוריה שלו נשמרת.')+'</div>');
-    else if(g.removed)h+=('<div class="note">'+_('היעד הוסר מהיעדים הפעילים. המשימות וההיסטוריה שלו נשמרות.')+'</div>');
     h+='<div class="gcur"><div class="gcl">'+esc(pLabel(g.period,ps))+(' · '+_('התקופה הנוכחית')+'</div><div class="gbar big')+(st.done>=st.target?' full':'')+'"><i style="width:'+pct(st)+'%"></i></div><div class="gbig">'+doneText(st)+'</div><div class="gplan">'+plannedText(st.planned)+(' '+_('בלוח')+'</div>')+(st.done>=st.target?('<div class="gok">✓ '+_('היעד הושג בתקופה הזו')+'</div>'):'')+'</div>';
     /* עדכון התקדמות: ישיר, בדיעבד, או דרך היומן */
     h+=('<div class="gsecn"><h2>'+_('עדכון התקדמות')+'</h2><div class="gupd"><button type="button" class="gbtn" data-act="g-dec" data-id="')+g.id+('" aria-label="'+_('הסר עדכון אחרון')+'">−</button><button type="button" class="pbtn" data-act="g-inc" data-id="')+g.id+('" data-sub="">＋ '+_('בוצעה פעילות היום')+'</button></div>');
@@ -1572,7 +1586,7 @@ function renderGoal(){
       h+='<div class="hrow"><div class="hl"><b>'+esc(pLabel(g.period,p))+'</b><span class="'+(ok?'hok':'hno')+'"><span class="ltr">'+x.done+'/'+x.target+'</span> '+(ok?'✓':'')+'</span></div>'+(ent?'<div class="hent">'+ent+'</div>':'')+'</div>';
     });
     h+='</div>';
-    h+='<div class="gfoot">'+(gIsActive(g)?'<button type="button" class="gbtn" data-act="g-archive" data-id="'+g.id+('">'+_('העברה לארכיון')+'</button> <button type="button" class="gbtn" data-act="g-remove" data-id="')+g.id+('">'+_('הסרה מהיעדים הפעילים')+'</button>'):'<button type="button" class="pbtn" data-act="g-restore" data-id="'+g.id+('">'+_('שחזור ליעדים הפעילים')+'</button>'))+('<div class="note">'+_('אין מחיקה של יעד: המשימות וההיסטוריה נשמרות תמיד.')+'</div></div></div>');
+    h+='<div class="gfoot"><button type="button" class="dbtn" data-act="g-del" data-id="'+g.id+'">🗑️ '+_('מחיקת היעד')+'</button></div></div>';
     return h;
   }catch(e){console.error('goalscreen',e);return '<div class="wrap">'+back+('<div class="loading">'+_('אירעה שגיאה בתצוגת היעד.')+'</div></div>')}
 }
@@ -1599,6 +1613,10 @@ function goalModalHtml(m){
     if((g.subs||[]).length)b+=('<div class="frow col"><span class="fl">'+_('סוג')+'</span><div class="seg" role="group" aria-label="'+_('סוג')+'"><button type="button" data-act="gl-sub" data-sid="" aria-pressed="')+(!v.sub)+('">'+_('ללא סוג')+'</button>')+g.subs.map(s=>'<button type="button" data-act="gl-sub" data-sid="'+esc(s.id)+'" aria-pressed="'+(v.sub===s.id)+'">'+esc(s.name)+'</button>').join('')+'</div></div>';
     b+=('<textarea class="dta" id="gl_note" rows="2" maxlength="300" placeholder="'+_('הערה (לא חובה)')+'" aria-label="'+_('הערה')+'">')+esc(v.note||'')+('</textarea><div class="err" id="f_err" role="alert"></div><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="submit" class="pbtn">'+_('הוסף')+'</button></div></form>');
     return sheet(_('הוספת פעילות שבוצעה'),b);
+  }
+  if(m.type==='gkill'){
+    const g=gById(m.id);if(!g)return '';
+    return sheet(_('מחיקת יעד'),'<p class="note">'+_('למחוק את היעד')+' «'+esc(g.title)+'»?</p><p class="note">'+_('המשימות שתוכננו ליעד יישארו ביומן כמשימות רגילות. העדכונים הידניים של היעד יימחקו.')+'</p><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="dbtn" data-act="g-del-yes">'+_('מחיקה')+'</button></div>');
   }
   if(m.type==='gdel'){
     const l=S.glog.find(x=>x.id===m.id);if(!l){return ''}
@@ -1663,7 +1681,7 @@ function openGoalPop(id,btn){
   S.pop={id,sy:window.scrollY,goal:true};
   const it=(act,l,c)=>'<button type="button" role="menuitem"'+(c?' class="'+c+'"':'')+' data-act="'+act+'" data-id="'+id+'">'+l+'</button>';
   const root=$('#popRoot');
-  root.innerHTML='<div class="pop" role="menu" id="popBox">'+it('g-edit',('✏️ '+_('עריכה')))+(gIsActive(g)?it('g-remove',('➖ '+_('הסרה מהיעדים הפעילים')))+it('g-archive',('📦 '+_('העברה לארכיון'))):it('g-restore',('♻️ '+_('שחזור ליעדים הפעילים'))))+'</div>';
+  root.innerHTML='<div class="pop" role="menu" id="popBox">'+it('g-edit',('✏️ '+_('עריכה')))+it('g-del',('🗑️ '+_('מחיקה')),'rd')+'</div>';
   const box=$('#popBox'),w=box.offsetWidth,hh=box.offsetHeight;
   let left=Math.min(Math.max(8,r.left),innerWidth-w-8),top=r.bottom+2;
   if(top+hh>innerHeight-8)top=Math.max(8,r.top-hh-2);
@@ -1681,11 +1699,8 @@ function goalClick(a,el,id,e){
   if(a==='g-menu'){if(S.pop&&S.pop.goal&&S.pop.id===id){closePop();return true}openGoalPop(id,el);return true}
   if(a==='g-tog'){if(S.gOpen.has(id))S.gOpen.delete(id);else S.gOpen.add(id);render();return true}
   if(a==='sec-tog'){const k=el.dataset.k;S.dayUI[k]=!S.dayUI[k];S.dayUI.manual=true;applyDayUI();return true}
-  if(a==='g-remove'||a==='g-archive'||a==='g-restore'){closePop();const g=gById(id);if(!g)return true;
-    if(a==='g-remove'){updGoal(id,{removed:true});toast(_('היעד הוסר מהיעדים הפעילים. המשימות וההיסטוריה נשמרו.'))}
-    else if(a==='g-archive'){updGoal(id,{archived:true});toast(_('היעד הועבר לארכיון. המשימות וההיסטוריה נשמרו.'))}
-    else{updGoal(id,{archived:false,removed:false});toast(_('היעד חזר ליעדים הפעילים'))}
-    render();return true}
+  if(a==='g-del'){closePop();if(gById(id))modal({type:'gkill',id});return true}
+  if(a==='g-del-yes'){const gid=m&&m.id;closeModal();if(gid)deleteGoal(gid);return true}
   if(a==='g-day'){openDay(el.dataset.d);return true}
   if(a==='g-plan'){
     const gid=el.dataset.gid,sub=el.dataset.sub||'';
@@ -1729,9 +1744,9 @@ document.addEventListener('keydown',e=>{
    וסדרה שכבר אושרה לא חוזרת. עדכון קטן בלי חידוש לא מוסיף סדרה ולכן לא מציג כלום. */
 const NEWS=[
   {id:'move',series:'0.5',ic:'↔️',t:'העברת משימה',x:'בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.'},
-  {id:'more',series:'0.5',ic:'🗓️',t:'כל המשימות ביום',x:'בלחיצה על "עוד" בתא של יום, התא נפתח ומראה את כל המשימות שלו.'},
+  {id:'more',series:'0.5',ic:'🗓️',t:'כל המשימות ביום',x:'בכל יום שיש בו משימות יש "עוד". לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.'},
   {id:'daysec',series:'0.5',ic:'🧩',t:'מסך יום מסודר יותר',x:'"משימות כלליות" ו"יעדים" מתקפלים ונפתחים מהכותרת שלהם, ונפתחים לבד כשמגיעים לסוף הציר.'},
-  {id:'goalrow',series:'0.5',ic:'🎯',t:'יעדים קומפקטיים',x:'כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך, להסיר מהפעילים או להעביר לארכיון.'},
+  {id:'goalrow',series:'0.5',ic:'🎯',t:'יעדים קומפקטיים',x:'כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך או למחוק.'},
   {id:'theme',series:'0.5',ic:'🌙',t:'מצב בהיר וכהה',x:'בהגדרות ⚙️ אפשר לבחור בהיר, כהה או אוטומטי לפי המכשיר.'},
   {id:'lang',series:'0.5',ic:'🌐',t:'עברית ואנגלית',x:'בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.'}
 ];
