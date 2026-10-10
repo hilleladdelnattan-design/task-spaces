@@ -1483,18 +1483,35 @@ function applyDayUI(){
   });
 }
 function dayScrollCheck(){
-  if(S.view!=='day'||S.dragging||S.dayUI.manual||S.modal||S.pick)return;
+  if(S.view!=='day')return;
+  const u=S.dayUI,sy=window.scrollY,prev=u.ly==null?sy:u.ly;u.ly=sy;
+  const vh=innerHeight,max=document.documentElement.scrollHeight-vh,open=!!(u.gen&&u.goals);
+  /* השיא נמדד עד תחתית הדף בלבד, כדי שקפיצת הקצה של iOS לא תיחשב גלילה למעלה */
+  if(open)u.peak=Math.max(u.peak||0,Math.min(sy,max));
+  if(S.dragging||u.manual||S.modal||S.pick)return;
   if(performance.now()<(S.noAutoUntil||0))return;
   const tl=$('#tl');if(!tl)return;
-  const end=tl.getBoundingClientRect().bottom,vh=innerHeight;
-  /* נפתחים כשהמשתמש גלל עד סוף הדף וסוף ציר השעות נראה. חוזרים לקומפקטי כשחוזרים לראש הדף או כשסוף הציר יצא מהמסך.
-     באמצע (כשכבר פתוח) לא משנים כלום, כדי שלא יהיו קפיצות */
-  const sy=window.scrollY,atBottom=sy>8&&sy+vh>=document.documentElement.scrollHeight-40;
-  const want=(end<=vh-6&&atBottom)?true:(end>vh+70||sy<=8)?false:null;
-  if(want===null||(S.dayUI.gen===want&&S.dayUI.goals===want))return;
-  const now=performance.now();if(now-(S.dayUI.t||0)<450)return;
-  S.dayUI.t=now;S.dayUI.gen=want;S.dayUI.goals=want;applyDayUI();
+  if(!open){
+    /* פתיחה: רק בגלילה כלפי מטה, כשמגיעים לסוף הדף וסוף ציר השעות נראה */
+    if(sy>prev&&sy>0&&sy>=max-40&&tl.getBoundingClientRect().bottom<=vh-6)dayOpenSecs();
+    return;
+  }
+  /* סגירה מיידית ברגע שמתחילים לגלול מעט למעלה */
+  if(sy<=max&&u.peak-sy>=6&&performance.now()-(u.openT||0)>250){u.gen=false;u.goals=false;u.peak=0;applyDayUI()}
 }
+function dayOpenSecs(){const u=S.dayUI;u.gen=true;u.goals=true;u.peak=Math.min(window.scrollY,document.documentElement.scrollHeight-innerHeight);u.openT=performance.now();applyDayUI()}
+/* כשהדף כבר בתחתית אין אירוע גלילה, לכן ניסיון לגלול למטה (גלגלת או החלקה באצבע) בתחתית פותח את החלקים */
+function dayPushDown(){
+  if(S.view!=='day')return;const u=S.dayUI;
+  if((u.gen&&u.goals)||S.dragging||u.manual||S.modal||S.pick||performance.now()<(S.noAutoUntil||0))return;
+  const tl=$('#tl');if(!tl)return;
+  const vh=innerHeight,max=document.documentElement.scrollHeight-vh;
+  if(window.scrollY>=max-2&&tl.getBoundingClientRect().bottom<=vh-6)dayOpenSecs();
+}
+addEventListener('wheel',e=>{if(e.deltaY>0)dayPushDown()},{passive:true});
+let dayTY=null;
+addEventListener('touchstart',e=>{dayTY=e.touches.length===1?e.touches[0].clientY:null},{passive:true});
+addEventListener('touchmove',e=>{if(dayTY!==null&&e.touches.length===1&&dayTY-e.touches[0].clientY>12){dayTY=null;dayPushDown()}},{passive:true});
 function entriesLine(g,st){
   const items=[...st.doneT.map(t=>({d:t.date,s:t.goalSub})),...st.logs.map(l=>({d:l.date,s:l.subId}))].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
   return items.slice(0,14).map(x=>dm(x.d)+(x.s&&subName(g,x.s)?' '+esc(subName(g,x.s)):'')).join(' · ');
