@@ -2,7 +2,7 @@
    מטרה: לשמור את קבצי האפליקציה במכשיר כדי שהיא תיפתח גם בלי אינטרנט.
    הנתונים עצמם (המשימות) נשמרים על ידי Firestore במטמון המקומי שלו, לא כאן.
    אסטרטגיה: קודם הרשת (כדי שעדכון שהועלה יופיע מיד), ואם אין רשת או שהיא איטית מדי, הגרסה השמורה. */
-const CACHE='cal-v0.4';
+const CACHE='cal-v0.5';
 const CORE=['/cal.html','/fb.js'];
 const OPTIONAL=['/manifest.json','/icon-180.png','/icon-192.png','/icon-512.png','/icon-maskable-512.png'];
 const ALL=new Set([...CORE,...OPTIONAL]);
