@@ -1508,10 +1508,17 @@ function dayPushDown(){
   const vh=innerHeight,max=document.documentElement.scrollHeight-vh;
   if(window.scrollY>=max-2&&tl.getBoundingClientRect().bottom<=vh-6)dayOpenSecs();
 }
-addEventListener('wheel',e=>{if(e.deltaY>0)dayPushDown()},{passive:true});
+/* כל ניסיון לגלול למעלה (גלגלת או החלקה באצבע) סוגר מיד, גם כשהדף לא זז (למשל כשהוא כבר בראש או קצר מדי לגלילה) */
+function dayPullUp(){
+  if(S.view!=='day')return;const u=S.dayUI;
+  if(!(u.gen&&u.goals)||S.dragging||u.manual||S.modal||S.pick)return;
+  if(performance.now()-(u.openT||0)<=250)return;
+  u.gen=false;u.goals=false;u.peak=0;applyDayUI();
+}
+addEventListener('wheel',e=>{if(e.deltaY>0)dayPushDown();else if(e.deltaY<0)dayPullUp()},{passive:true});
 let dayTY=null;
 addEventListener('touchstart',e=>{dayTY=e.touches.length===1?e.touches[0].clientY:null},{passive:true});
-addEventListener('touchmove',e=>{if(dayTY!==null&&e.touches.length===1&&dayTY-e.touches[0].clientY>12){dayTY=null;dayPushDown()}},{passive:true});
+addEventListener('touchmove',e=>{if(dayTY===null||e.touches.length!==1)return;const d=dayTY-e.touches[0].clientY;if(d>12){dayTY=null;dayPushDown()}else if(d<-12){dayTY=null;dayPullUp()}},{passive:true});
 function entriesLine(g,st){
   const items=[...st.doneT.map(t=>({d:t.date,s:t.goalSub})),...st.logs.map(l=>({d:l.date,s:l.subId}))].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
   return items.slice(0,14).map(x=>dm(x.d)+(x.s&&subName(g,x.s)?' '+esc(subName(g,x.s)):'')).join(' · ');
