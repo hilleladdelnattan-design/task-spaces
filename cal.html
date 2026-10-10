@@ -55,7 +55,7 @@ body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .cell .t{font-size:10.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
 .cell .t.bad{color:var(--redtxt)}
 .cell .t.ok{color:var(--green);font-weight:600}
-.cell .more{font-size:10px;line-height:1.15;color:var(--accent);font-weight:700;padding:0 3px;overflow:hidden}
+.cell .more{font-size:10px;line-height:1.15;color:var(--muted);font-weight:400;padding:0 3px;overflow:hidden}
 @media(min-width:640px){.wrap{max-width:900px}.cell{min-height:100px;padding:6px 5px}.cell .t{font-size:12px}.cell .more{font-size:11.5px}}
 /* סיכום היום הנבחר בלוח */
 .dpanel{background:var(--surface);border-radius:16px;padding:12px 14px;margin-top:10px;display:flex;flex-direction:column;gap:8px}
@@ -95,7 +95,9 @@ body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .nt .ns{display:flex;flex-direction:column;gap:3px}
 .ngen{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
 .tk{display:flex;align-items:flex-start;gap:2px;border-radius:12px;background:var(--tint);position:relative}
-.tk.lifted{opacity:.35}
+.tk.lifted,.cell .t.lifted{outline:2px dashed var(--muted);outline-offset:-2px;background:transparent!important;box-shadow:none!important;border-color:transparent!important}
+.tk.lifted>*,.cell .t.lifted{visibility:hidden}
+.cell .t.lifted{visibility:visible;color:transparent!important}
 .tk.blk{position:absolute;z-index:auto;overflow:visible;border-inline-start:3px solid var(--accent)}
 .tk.blk.done{border-inline-start-color:var(--green)}
 .tk.blk.missed{border-inline-start-color:var(--red)}
@@ -440,16 +442,17 @@ const EN={
 'מחיקת היעד':'Delete goal','מחיקת יעד':'Delete goal','למחוק את היעד':'Delete the goal',
 'המשימות שתוכננו ליעד יישארו ביומן כמשימות רגילות. העדכונים הידניים של היעד יימחקו.':'Tasks planned for this goal stay in the calendar as regular tasks. The goal’s manual updates will be deleted.',
 'היעד נמחק. המשימות שלו נשארו ביומן.':'Goal deleted. Its tasks stay in the calendar.',
+'כל המשימות של היום':'All of the day’s tasks',
 /* חידושים */
 'העברת משימה':'Moving a task','בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.':'In a task’s ⋮ menu on the day screen choose “Move”, then drag or tap a date in the calendar. Only the date changes.',
-'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש "עוד". לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows “more”. Tap it to open the cell and see all of its tasks.',
+'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש סימן ⤢. לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows a ⤢ mark. Tap it to open the cell and see all of its tasks.',
 'מסך יום מסודר יותר':'A tidier day screen','"משימות כלליות" ו"יעדים" מתקפלים ונפתחים מהכותרת שלהם, ונפתחים לבד כשמגיעים לסוף הציר.':'“General tasks” and “Goals” collapse and open from their headers, and open by themselves when you reach the end of the timeline.',
 'יעדים קומפקטיים':'Compact goals','כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך או למחוק.':'Each goal is one row. Tap to open the details, and use the ⋮ menu to edit or delete it.',
 'מצב בהיר וכהה':'Light and dark mode','בהגדרות ⚙️ אפשר לבחור בהיר, כהה או אוטומטי לפי המכשיר.':'In Settings ⚙️ you can choose light, dark, or automatic (follows your device).',
 'עברית ואנגלית':'Hebrew and English','בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.':'In Settings ⚙️ you can switch language. The tasks and goals you wrote are not translated.'
 };
 /* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
-const VERSION='0.5.3';
+const VERSION='0.5.4';
 /* ===== העדפות (מראה ושפה): נשמרות במכשיר ב-localStorage. מפתח חדש ונפרד, שום נתון קיים לא נוגע ===== */
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
@@ -626,7 +629,7 @@ function renderMonth(){
     const shown=list.length>MV?MV-1:list.length;
     for(let i=0;i<list.length;i++){const t=list[i],st=status(t,today);items+='<div class="t '+(st==='missed'||st==='moved'?'bad':st==='done'?'ok':'')+(i>=shown?' ovf':'')+'"'+(st==='moved'?'':' data-tid="'+t.id+'"')+'>'+esc(t.title)+'</div>'}
     /* "עוד" מופיע בכל יום שיש בו לפחות משימה אחת (גם כשאין משימות מוסתרות) */
-    if(list.length)items+='<span class="more" data-act="more" data-d="'+ds+'" role="button" aria-expanded="'+(xd===ds)+'"><span class="mc">'+(list.length>shown?'<span class="ltr">+'+(list.length-shown)+'</span> ':'')+_('עוד')+' ⌄</span><span class="ml">'+_('פחות')+' ⌃</span></span>';
+    if(list.length)items+='<span class="more" data-act="more" data-d="'+ds+'" role="button" aria-label="'+_('כל המשימות של היום')+'" aria-expanded="'+(xd===ds)+'"><span class="mc ltr">'+(list.length>shown?'+'+(list.length-shown)+' ':'')+'⤢</span><span class="ml">⌃</span></span>';
     const mvc=mvT?(ds<today?' mvno':ds===mvT.date?' mvown':' mvok'):'';
     cells+='<button type="button" class="cell'+(ds===today?' today':'')+(ds===S.sel?' sel':'')+(xd===ds?' xp':'')+mvc+'" data-act="day" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+(' '+_('משימות')+'"><span class="n">')+d+'</span>'+items+'</button>';
   }
@@ -1040,7 +1043,8 @@ function dragStart(x,y){
   DR.fromTl=!!(src&&src.classList.contains('blk'));
   DR.p0=S.view==='day'?minAt(DR.sy):0;
   DR.prop=null;
-  if(src&&DR.kind==='move')src.classList.add('lifted');
+  /* המקום שממנו גוררים נשאר מסומן במסגרת מקווקוות ריקה, והמשימה עצמה לא מוצגת שם בזמן הגרירה */
+  if(DR.kind==='move'&&!DR.chip&&DR.id)document.querySelectorAll('.tk[data-id="'+DR.id+'"],.cell .t[data-tid="'+DR.id+'"]').forEach(e=>e.classList.add('lifted'));
   if(DR.kind==='move'){const g=document.createElement('div');g.className='ghost';g.textContent=t.title;document.body.appendChild(g);DR.ghost=g}
   if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
   dragMove(x,y);
@@ -1744,7 +1748,7 @@ document.addEventListener('keydown',e=>{
    וסדרה שכבר אושרה לא חוזרת. עדכון קטן בלי חידוש לא מוסיף סדרה ולכן לא מציג כלום. */
 const NEWS=[
   {id:'move',series:'0.5',ic:'↔️',t:'העברת משימה',x:'בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.'},
-  {id:'more',series:'0.5',ic:'🗓️',t:'כל המשימות ביום',x:'בכל יום שיש בו משימות יש "עוד". לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.'},
+  {id:'more',series:'0.5',ic:'🗓️',t:'כל המשימות ביום',x:'בכל יום שיש בו משימות יש סימן ⤢. לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.'},
   {id:'daysec',series:'0.5',ic:'🧩',t:'מסך יום מסודר יותר',x:'"משימות כלליות" ו"יעדים" מתקפלים ונפתחים מהכותרת שלהם, ונפתחים לבד כשמגיעים לסוף הציר.'},
   {id:'goalrow',series:'0.5',ic:'🎯',t:'יעדים קומפקטיים',x:'כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך או למחוק.'},
   {id:'theme',series:'0.5',ic:'🌙',t:'מצב בהיר וכהה',x:'בהגדרות ⚙️ אפשר לבחור בהיר, כהה או אוטומטי לפי המכשיר.'},
