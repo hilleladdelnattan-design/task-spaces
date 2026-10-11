@@ -354,6 +354,38 @@ body.offline .wrap{padding-top:calc(34px + env(safe-area-inset-top))}
 .updbar{pointer-events:auto;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:999px;padding:10px 18px;box-shadow:var(--shadow);font-size:14.5px;max-width:100%}
 .errbox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 16px}
 .errbox p{margin:0;color:var(--ink);max-width:320px}
+/* ===== גרסה 0.7 ===== */
+:root{--holc:#b45309;--holbg:#fff7ed}
+:root[data-theme="dark"]{--holc:#f5b467;--holbg:#2a2117}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]){--holc:#f5b467;--holbg:#2a2117}}
+.cell .nrow{display:flex;align-items:center;gap:3px;min-width:0}
+.cell .hdn{font-size:9.5px;color:var(--muted);opacity:.85;white-space:nowrap}
+.cell .hol{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:9.5px;line-height:1.2;color:var(--holc);font-weight:600;overflow:hidden;word-break:break-word;padding:0 3px}
+.cell.chag{background:var(--holbg)}
+.cell.chag.sel{background:var(--accent-soft)}
+.grid.xpg .cell:not(.xp) .hol,.grid.xpg .cell:not(.xp) .hdn{display:none}
+.grid.xpg .cell:not(.xp) .nrow{justify-content:center}
+@media(min-width:640px){.cell .hdn,.cell .hol{font-size:11px}}
+.hline{font-size:13px;color:var(--muted);margin-top:2px}
+.hline .hholn{color:var(--holc);font-weight:600}
+.mtitle .hmon{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.ydbtn{width:100%;margin:8px 0 4px;height:auto;min-height:44px;padding:8px 14px;border-color:var(--accent);color:var(--accent);font-weight:600;white-space:normal}
+.tgl{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;border:none;background:none;padding:4px 0;font-size:15.5px;text-align:start;border-top:1px solid var(--line)}
+.tgl:first-of-type{border-top:none}
+.tgl i{flex:none;width:46px;height:28px;border-radius:99px;background:var(--line);position:relative;transition:background .15s}
+.tgl i::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:inset-inline-start .15s}
+.tgl[aria-checked="true"] i{background:var(--accent)}
+.tgl[aria-checked="true"] i::after{inset-inline-start:21px}
+.slh{font-size:13px;color:var(--muted);margin:14px 2px 4px}
+.slr{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:0 12px;margin-top:6px;text-align:start;font-size:15.5px}
+.slr i{font-style:normal;color:var(--muted)}
+.slr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clist{margin:4px 0 6px;padding-inline-start:20px}
+.clist li{margin:3px 0}
+.crow{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
+.crow span{display:flex;flex-direction:column;min-width:0}
+.crow small{color:var(--muted);font-size:12.5px}
+.crow .seg{flex:none}
 </style></head><body>
 <div id="net" role="status">אין חיבור · השינויים נשמרים במכשיר וישלחו כשהחיבור יחזור</div>
 <div id="app"><div class="loading">טוען…</div></div>
@@ -462,6 +494,16 @@ const EN={
 'כפתור "בטל"':'The “Undo” button','אחרי מחיקה או גרירה מופיע למטה כפתור "בטל" לכמה שניות, שמחזיר את המצב כמו שהיה.':'After deleting or dragging, an “Undo” button appears at the bottom for a few seconds and puts everything back as it was.',
 'גיבוי הנתונים':'Backing up your data','בהגדרות ⚙️ ← גיבוי אפשר לשמור קובץ עם כל המשימות והיעדים.':'In Settings ⚙️ → Backup you can save a file with all your tasks and goals.',
 'הודעה על גרסה חדשה':'New version notice','כשיוצאת גרסה חדשה מופיעה למעלה הודעה, ולחיצה עליה מעדכנת את האפליקציה.':'When a new version is out, a notice appears at the top; tap it to update the app.',
+'הועבר מאתמול':'Moved from yesterday','להיום':'To today','למחר':'To tomorrow','המשימות הועברו':'Tasks moved','{n} משימות הועברו מאתמול להיום':'{n} tasks moved from yesterday to today',
+'העבר להיום משימה אחת שהוחמצה אתמול':'Move 1 missed task from yesterday to today','העבר להיום {n} משימות שהוחמצו אתמול':'Move {n} missed tasks from yesterday to today',
+'משימה חדשה ב־{t}':'New task at {t}','אין משימות ללא שעה או משימות כלליות לשבץ.':'There are no untimed or general tasks to schedule.',
+'להמשיך משימות חוזרות?':'Continue recurring tasks?','{n} משימות חוזרות נגמרות בקרוב:':'{n} recurring tasks end soon:','המשך את כולן':'Continue all','בחר אילו':'Choose','בחר אילו להמשיך':'Choose which to continue','להמשיך':'Continue','לסיים':'Finish',
+'לוח עברי':'Hebrew calendar','חגים ומועדים':'Jewish holidays','תאריך עברי בכל יום':'Hebrew date on each day','חודש עברי בכותרת':'Hebrew month in the title',
+'חנוכה':'Hanukkah','נר {n}':'candle {n}','ערב ראש השנה':'Erev Rosh Hashana','ראש השנה':'Rosh Hashana','ראש השנה ב׳':'Rosh Hashana II','צום גדליה':'Fast of Gedaliah','ערב יום כיפור':'Erev Yom Kippur','יום כיפור':'Yom Kippur','ערב סוכות':'Erev Sukkot','סוכות':'Sukkot','חול המועד סוכות':'Sukkot (Chol HaMoed)','הושענא רבה':'Hoshana Raba','שמחת תורה':'Simchat Torah','צום עשרה בטבת':'Fast of Tevet 10','ט״ו בשבט':'Tu BiShvat','תענית אסתר':'Fast of Esther','פורים':'Purim','שושן פורים':'Shushan Purim','פורים קטן':'Purim Katan','ערב פסח':'Erev Pesach','פסח':'Pesach','חול המועד פסח':'Pesach (Chol HaMoed)','שביעי של פסח':'Pesach VII','פסח שני':'Pesach Sheni','יום השואה':'Holocaust Remembrance Day','יום הזיכרון':'Memorial Day','יום העצמאות':'Independence Day','ל״ג בעומר':'Lag BaOmer','יום ירושלים':'Jerusalem Day','ערב שבועות':'Erev Shavuot','שבועות':'Shavuot','צום י״ז בתמוז':'Fast of Tammuz 17','תשעה באב':'Tisha B’Av','ט״ו באב':'Tu B’Av',
+'חגים בלוח':'Holidays in the calendar','בלוח מסומנים חגים ותאריך עברי, ובהגדרות ⚙️ אפשר לכבות אותם או להוסיף חודש עברי.':'The calendar shows Jewish holidays and Hebrew dates; in Settings ⚙️ you can turn them off or add the Hebrew month.',
+'העברה מהירה':'Quick moves','בתפריט ⋮ יש "למחר" ו"להיום", ובמסך היום כפתור שמעביר להיום את מה שהוחמץ אתמול.':'The ⋮ menu has “To tomorrow” and “To today”, and the day screen has a button that moves yesterday’s missed tasks to today.',
+'הקשה על שעה':'Tap an hour','הקשה על מקום ריק בציר השעות מוסיפה משימה בשעה הזו, או משבצת בה משימה קיימת.':'Tap an empty spot on the timeline to add a task at that time, or to place an existing task there.',
+'יום שעבר':'Past day','זה יום שעבר. להוסיף כפעילות שבוצעה?':'This day has passed. Add it as a completed activity?','כן, בוצע':'Yes, done','הפעילות נוספה':'Activity added','נוספה פעילות שבוצעה ל־':'Completed activity added for ',
 /* חידושים */
 'העברת משימה':'Moving a task','בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.':'In a task’s ⋮ menu on the day screen choose “Move”, then drag or tap a date in the calendar. Only the date changes.',
 'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש סימן ⤢. לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows a ⤢ mark. Tap it to open the cell and see all of its tasks.',
@@ -471,11 +513,11 @@ const EN={
 'עברית ואנגלית':'Hebrew and English','בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.':'In Settings ⚙️ you can switch language. The tasks and goals you wrote are not translated.'
 };
 /* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
-const VERSION='0.6';
+const VERSION='0.7';
 /* ===== העדפות (מראה ושפה): נשמרות במכשיר ב-localStorage. מפתח חדש ונפרד, שום נתון קיים לא נוגע ===== */
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
-function loadPrefs(){let p={};try{p=JSON.parse(lsGet('cal.prefs')||'{}')||{}}catch(e){p={}}return {theme:['light','dark'].includes(p.theme)?p.theme:'auto',lang:p.lang==='en'?'en':'he'}}
+function loadPrefs(){let p={};try{p=JSON.parse(lsGet('cal.prefs')||'{}')||{}}catch(e){p={}}return {theme:['light','dark'].includes(p.theme)?p.theme:'auto',lang:p.lang==='en'?'en':'he',hol:p.hol!==false,hdate:p.hdate!==false,hmonth:p.hmonth===true}}
 let PREFS=loadPrefs();
 let LANG=PREFS.lang;
 /* תרגום: המפתח הוא הטקסט בעברית. EN (בקובץ התרגום) מכיל את האנגלית. טקסט שהמשתמש כתב לעולם לא עובר דרך _() */
@@ -640,7 +682,8 @@ function taskHtml(t,today,o){
   const rt=t.general?'':remText(remList(t));if(rt)meta.push(esc(rt));
   let m=meta.length?'<div class="meta">'+meta.join(' · ')+'</div>':'';
   if(t.movedTo)m+=('<div class="meta bad">'+_('הועבר ל־'))+dm(t.movedTo)+'</div>';
-  if(t.movedFrom)m+=('<div class="meta">'+_('הועבר מ־'))+dm(t.movedFrom)+'</div>';
+  /* "הועבר מאתמול" כל עוד אתמול הוא היום שממנו הועבר; אחר כך התאריך */
+  if(t.movedFrom)m+='<div class="meta">'+(t.movedFrom===addDays(today,-1)?_('הועבר מאתמול'):_('הועבר מ־')+dm(t.movedFrom))+'</div>';
   if(t.details)m+='<div class="det">'+esc(t.details)+'</div>';
   const mv=st==='missed'?'<button type="button" class="mvlink" data-act="mv" data-id="'+t.id+('">'+_('העבר ליום אחר')+'</button>'):'';
   const dis=st==='moved',nar=!!(o.blk&&o.blk.narrow);
@@ -679,16 +722,16 @@ function renderMonth(){
     /* "עוד" מופיע בכל יום שיש בו לפחות משימה אחת (גם כשאין משימות מוסתרות) */
     if(list.length)items+='<span class="more" data-act="more" data-d="'+ds+'" role="button" aria-label="'+_('כל המשימות של היום')+'" aria-expanded="'+(xd===ds)+'"><span class="mc ltr">'+(list.length>shown?'+'+(list.length-shown)+' ':'')+'⤢</span><span class="ml">⌃</span></span>';
     const mvc=mvT?(ds<today?' mvno':ds===mvT.date?' mvown':' mvok'):'';
-    cells+='<button type="button" class="cell'+(ds===today?' today':'')+(ds===S.sel?' sel':'')+(xd===ds?' xp':'')+mvc+'" data-act="day" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+(' '+_('משימות')+'"><span class="n">')+d+'</span>'+items+'</button>';
+    cells+='<button type="button" class="cell'+(ds===today?' today':'')+(PREFS.hol&&holidaysOn(ds).some(x=>x.chag)?' chag':'')+(ds===S.sel?' sel':'')+(xd===ds?' xp':'')+mvc+'" data-act="day" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+(' '+_('משימות')+'"><span class="nrow"><span class="n">')+d+'</span>'+(PREFS.hdate?'<span class="hdn">'+hebDayStr(ds)+'</span>':'')+'</span>'+holCell(ds)+items+'</button>';
   }
   const sl=S.tasks.filter(t=>!t.general&&t.date===S.sel);
-  const panel='<div class="dpanel" id="dpanel"><h2>'+esc(longDay(S.sel))+(S.sel===today?('<span class="tag">'+_('היום')+'</span>'):'')+'</h2><div class="dsum">'+summary(sl)+('</div><div class="btns"><button type="button" class="pbtn" data-act="add">＋ '+_('הוסף משימה')+'</button><button type="button" class="gbtn" data-act="open-day">'+_('פתח את היום')+'</button></div></div>');
+  const panel='<div class="dpanel" id="dpanel"><h2>'+esc(longDay(S.sel))+(S.sel===today?('<span class="tag">'+_('היום')+'</span>'):'')+'</h2>'+hebDayLine(S.sel)+'<div class="dsum">'+summary(sl)+'</div>'+(S.sel===today?yesterdayBtn():'')+('<div class="btns"><button type="button" class="pbtn" data-act="add">＋ '+_('הוסף משימה')+'</button><button type="button" class="gbtn" data-act="open-day">'+_('פתח את היום')+'</button></div></div>');
   const gen=('<div class="gsec" id="gen" data-drop="general"><div class="gh"><b>📌 '+_('משימות כלליות')+'</b><button type="button" class="gbtn sm" data-act="addgen">＋ '+_('משימה כללית')+'</button></div><div class="gl2">')+genHtml(today)+'</div></div>';
   /* יום מורחב: העמודה שלו מתרחבת והאחרות מצטמצמות (אותה תבנית עמודות לכותרות הימים ולרשת, כך שהיישור נשמר) */
   let cols='';
   if(xd){const c=dowOf(xd);cols=' style="grid-template-columns:'+Array.from({length:7},(_,i)=>i===c?'minmax(0,3.4fr)':'minmax(0,.7fr)').join(' ')+'"'}
   const mvbar=mvT?('<div class="mvbar" id="mvbar" role="status"><div class="mvl">'+_('גרור את המשימה לתאריך חדש (או הקש על תאריך):')+'</div><div class="mvrow"><div class="mvchip" data-mv="1">')+esc(mvT.title)+('</div><button type="button" class="gbtn sm" data-act="mv-cancel">'+_('ביטול')+'</button></div></div>'):'';
-  return '<div class="wrap'+(mvT?' withmv':'')+('"><div class="mtop"><button type="button" class="arr" data-act="prev" aria-label="'+_('חודש קודם')+'">')+ARR_PREV()+'</button><h1 class="mtitle">'+MONTHS[m-1]+' '+y+('</h1><button type="button" class="arr" data-act="next" aria-label="'+_('חודש הבא')+'">')+ARR_NEXT()+('</button></div><div class="mbar"><button type="button" class="tlink" data-act="today">'+_('היום')+'</button><button type="button" class="gear" data-act="settings" aria-label="'+_('הגדרות')+'">⚙️</button></div><div class="cal"><div class="dow"')+cols+' aria-hidden="true">'+DOWS.map(x=>'<div>'+x+'</div>').join('')+'</div><div class="grid'+(xd?' xpg':'')+'"'+cols+'>'+cells+'</div></div>'+panel+goalsHtml()+gen+('<div class="foot"><div class="ver">'+_('גרסה')+' ')+VERSION+'</div></div>'+mvbar+'</div>';
+  return '<div class="wrap'+(mvT?' withmv':'')+('"><div class="mtop"><button type="button" class="arr" data-act="prev" aria-label="'+_('חודש קודם')+'">')+ARR_PREV()+'</button><h1 class="mtitle">'+MONTHS[m-1]+' '+y+(PREFS.hmonth?'<small class="hmon">'+hebMonthRange(S.month)+'</small>':'')+('</h1><button type="button" class="arr" data-act="next" aria-label="'+_('חודש הבא')+'">')+ARR_NEXT()+('</button></div><div class="mbar"><button type="button" class="tlink" data-act="today">'+_('היום')+'</button><button type="button" class="gear" data-act="settings" aria-label="'+_('הגדרות')+'">⚙️</button></div><div class="cal"><div class="dow"')+cols+' aria-hidden="true">'+DOWS.map(x=>'<div>'+x+'</div>').join('')+'</div><div class="grid'+(xd?' xpg':'')+'"'+cols+'>'+cells+'</div></div>'+panel+goalsHtml()+gen+('<div class="foot"><div class="ver">'+_('גרסה')+' ')+VERSION+'</div></div>'+mvbar+'</div>';
 }
 const ARR_PREV=()=>LANG==='en'?'←':'→';
 const ARR_NEXT=()=>LANG==='en'?'→':'←';
@@ -737,7 +780,7 @@ function renderDay(){
   S.tl={lo,occ,exp:null};
   const blocks=layoutDay(timed).map(x=>taskHtml(x.t,today,{blk:{s:x.s,e:x.e,top:yOfMin(x.s)+1,h:yOfMin(x.e)-yOfMin(x.s)-2,r:x.col*100/x.cols,w:100/x.cols,narrow:x.cols>=2}})).join('');
   const nt=('<div class="nt'+(S.dayUI.gen&&S.dayUI.goals?' full':'')+'" id="nt"><div class="ntn" id="ntn" data-drop="none"><div class="nth"><span>'+_('ללא שעה')+'</span></div>')+(untimed.length?'<div class="ns">'+untimed.map(t=>taskHtml(t,today)).join('')+'</div>':('<div class="none">'+_('אין משימות בלי שעה')+'</div>'))+'</div>'+dayGeneralHtml(today)+dayGoalsHtml()+'</div>';
-  return ('<div class="wrap"><div class="dtop"><button type="button" class="tlink" data-act="back">📅 '+_('חזרה ללוח')+'</button><button type="button" class="pbtn sm" data-act="add">＋ '+_('הוסף משימה')+'</button></div><div class="dnav"><button type="button" class="arr" data-act="dprev" aria-label="'+_('יום קודם')+'"><span class="ltr">')+(LANG==='en'?'‹':'›')+'</span></button><div class="dtitle"><small>'+DOWN[dowOf(d)]+'</small><h1>'+esc(dayName(d))+(d===today?('<span class="tag">'+_('היום')+'</span>'):'')+('</h1></div><button type="button" class="arr" data-act="dnext" aria-label="'+_('יום הבא')+'"><span class="ltr">')+(LANG==='en'?'›':'‹')+'</span></button></div><div class="dsum">'+summary(list)+'</div><div class="tl" id="tl" style="height:'+yOfMin(1440)+'px"><div id="glines">'+linesHtml()+'</div><div class="lane" id="lane">'+blocks+'</div></div>'+nt+'</div>';
+  return ('<div class="wrap"><div class="dtop"><button type="button" class="tlink" data-act="back">📅 '+_('חזרה ללוח')+'</button><button type="button" class="pbtn sm" data-act="add">＋ '+_('הוסף משימה')+'</button></div><div class="dnav"><button type="button" class="arr" data-act="dprev" aria-label="'+_('יום קודם')+'"><span class="ltr">')+(LANG==='en'?'‹':'›')+'</span></button><div class="dtitle"><small>'+DOWN[dowOf(d)]+'</small><h1>'+esc(dayName(d))+(d===today?('<span class="tag">'+_('היום')+'</span>'):'')+'</h1>'+hebDayLine(d)+('</div><button type="button" class="arr" data-act="dnext" aria-label="'+_('יום הבא')+'"><span class="ltr">')+(LANG==='en'?'›':'‹')+'</span></button></div><div class="dsum">'+summary(list)+'</div>'+(d===today?yesterdayBtn():'')+'<div class="tl" id="tl" style="height:'+yOfMin(1440)+'px"><div id="glines">'+linesHtml()+'</div><div class="lane" id="lane">'+blocks+'</div></div>'+nt+'</div>';
 }
 
 const errBox=m=>'<div class="loading errbox"><p>'+esc(m)+'</p><button type="button" class="pbtn" data-act="reload">'+_('רענון')+'</button><div class="ver">'+_('גרסה')+' '+VERSION+'</div></div>';
@@ -768,7 +811,7 @@ function route(){
   const pv=S.view+'|'+S.sel;S.expand='';
   if(location.hash==='#s'){if(S.view!=='settings')S.autoScroll=true;S.view='settings'}
   else if(gm){if(S.view!=='goal')S.autoScroll=true;S.view='goal';S.goalId=gm[1]}
-  else if(m&&isDate(m[1])){if(S.view!=='day')S.autoScroll=true;S.view='day';S.sel=m[1];S.month=m[1].slice(0,7)}
+  else if(m&&isDate(m[1])){if(S.view!=='day'){S.autoScroll=true;S.dayAt=performance.now()}S.view='day';S.sel=m[1];S.month=m[1].slice(0,7)}
   else S.view='month';
   if(S.view==='day'&&pv!=='day|'+S.sel)S.dayUI={gen:false,goals:false,manual:false};
   render();
@@ -873,8 +916,9 @@ function continueSeries(s){
 function checkSeries(){
   if(S.modal||S.pick||S.dragging||!S.loaded.t||!S.loaded.s)return;
   const today=todayIL();
-  const s=S.series.find(x=>seriesDue(x,today)&&!S.dismissed.has(x.id));
-  if(s)modal({type:'cont',sid:s.id});
+  /* כל הסדרות שנגמרות בקרוב, בחלון אחד. לא שואלים ביום שבו הסדרה נוצרה */
+  const due=S.series.filter(x=>seriesDue(x,today)&&!S.dismissed.has(x.id)&&x.start!==today);
+  if(due.length)modal({type:'cont',sids:due.map(x=>x.id)});
 }
 
 /* ===== חלונות ===== */
@@ -928,15 +972,31 @@ function renderModal(){
     const t=T(m.id);if(!t){closeModal();return}
     h=sheet(_('מחיקת משימה'),('<p class="note">'+_('למחוק את')+' «')+esc(t.title)+('»?</p><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="dbtn" data-act="del-yes">'+_('מחיקה')+'</button></div>'));
   }else if(m.type==='cont'){
-    const sr=S.series.find(x=>x.id===m.sid);if(!sr){closeModal();return}
-    const today=todayIL(),expired=today>sr.through;
-    const unit=sr.type==='monthdays'?_('החודש'):sr.type==='daily'?_('החודש'):_('השבוע');
-    const nxt=sr.type==='weekdays'?_('לשבוע הבא'):_('לחודש הבא');
-    const endTxt=sr.type==='monthdays'?_('בסוף החודש'):sr.type==='weekdays'?_('בסוף השבוע'):_('ב־')+dm(sr.through);
-    const msg=expired?(_('המשימה החוזרת')+' «')+esc(sr.title)+('» '+_('הסתיימה ב־'))+dm(sr.through)+('. '+_('להמשיך אותה')+' ')+(sr.type==='weekdays'?_('השבוע?'):_('החודש?'))
-      :(_('המשימה החוזרת')+' «')+esc(sr.title)+('» '+_('נגמרת')+' ')+endTxt+('. '+_('להמשיך אותה גם')+' ')+nxt+'?';
-    void unit;
-    h=sheet(_('להמשיך משימה חוזרת?'),'<p class="note">'+msg+('</p><div class="opts"><button type="button" data-act="cont-yes">'+_('כן, להמשיך')+'</button><button type="button" data-act="cont-no">'+_('לא, לסיים')+'</button><button type="button" data-act="cont-later">'+_('שאל אותי אחר כך')+'</button></div>'));
+    /* חלון אחד לכל המשימות החוזרות שנגמרות בקרוב */
+    const list=(m.sids||[]).map(id=>S.series.find(x=>x.id===id)).filter(Boolean);if(!list.length){closeModal();return}
+    const today=todayIL();
+    const endOf=sr=>today>sr.through?(_('הסתיימה ב־')+dm(sr.through)):sr.type==='monthdays'?_('בסוף החודש'):sr.type==='weekdays'?_('בסוף השבוע'):(_('ב־')+dm(sr.through));
+    if(list.length===1&&!m.choose){
+      const sr=list[0],expired=today>sr.through,nxt=sr.type==='weekdays'?_('לשבוע הבא'):_('לחודש הבא');
+      const msg=expired?(_('המשימה החוזרת')+' «')+esc(sr.title)+('» '+_('הסתיימה ב־'))+dm(sr.through)+('. '+_('להמשיך אותה')+' ')+(sr.type==='weekdays'?_('השבוע?'):_('החודש?'))
+        :(_('המשימה החוזרת')+' «')+esc(sr.title)+('» '+_('נגמרת')+' ')+endOf(sr)+('. '+_('להמשיך אותה גם')+' ')+nxt+'?';
+      h=sheet(_('להמשיך משימה חוזרת?'),'<p class="note">'+msg+'</p><div class="opts"><button type="button" data-act="cont-yes">'+_('כן, להמשיך')+'</button><button type="button" data-act="cont-no">'+_('לא, לסיים')+'</button><button type="button" data-act="cont-later">'+_('שאל אותי אחר כך')+'</button></div>');
+    }else if(!m.choose){
+      h=sheet(_('להמשיך משימות חוזרות?'),'<p class="note">'+_('{n} משימות חוזרות נגמרות בקרוב:',{n:list.length})+'</p><ul class="clist">'+list.map(sr=>'<li><b>'+esc(sr.title)+'</b> · '+esc(endOf(sr))+'</li>').join('')+'</ul><div class="opts"><button type="button" data-act="cont-yes">'+_('המשך את כולן')+'</button><button type="button" data-act="cont-choose">'+_('בחר אילו')+'</button><button type="button" data-act="cont-later">'+_('שאל אותי אחר כך')+'</button></div>');
+    }else{
+      h=sheet(_('בחר אילו להמשיך'),list.map(sr=>{const k=m.keep[sr.id]!==false;return '<div class="crow"><span><b>'+esc(sr.title)+'</b><small>'+esc(endOf(sr))+'</small></span><div class="seg"><button type="button" data-act="cont-set" data-sid="'+sr.id+'" data-v="1" aria-pressed="'+k+'">'+_('להמשיך')+'</button><button type="button" data-act="cont-set" data-sid="'+sr.id+'" data-v="0" aria-pressed="'+!k+'">'+_('לסיים')+'</button></div></div>'}).join('')+'<div class="mfoot"><button type="button" class="gbtn" data-act="cont-later">'+_('שאל אותי אחר כך')+'</button><button type="button" class="pbtn" data-act="cont-apply">'+_('אישור')+'</button></div>');
+    }
+  }else if(m.type==='slot'){
+    /* הקשה על שעה ריקה בציר */
+    const t0=fromMin(m.min),today=todayIL();
+    const unt=S.tasks.filter(t=>!t.general&&t.date===S.sel&&!t.time&&!t.done&&!t.movedTo).sort(cmpT);
+    const gen=S.tasks.filter(t=>t.general&&!t.done).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    const row=t=>'<button type="button" class="slr" data-act="slot-pick" data-id="'+t.id+'"><i aria-hidden="true">○</i><span>'+esc(t.title)+'</span></button>';
+    let b='<div class="opts"><button type="button" data-act="slot-new">＋ '+_('משימה חדשה ב־{t}',{t:'<span class="ltr">'+t0+'</span>'})+'</button></div>';
+    if(unt.length)b+='<h3 class="slh">'+_('ללא שעה')+'</h3>'+unt.map(row).join('');
+    if(gen.length)b+='<h3 class="slh">'+_('משימות כלליות')+'</h3>'+(S.sel<today?'<p class="note">'+_('אי אפשר להוסיף משימה ליום שעבר.')+'</p>':gen.map(row).join(''));
+    if(!unt.length&&!gen.length)b+='<p class="note">'+_('אין משימות ללא שעה או משימות כלליות לשבץ.')+'</p>';
+    h=sheet('🕐 '+dayName(S.sel)+' · '+t0,b);
   }else if(m.type==='quick'){
     const v=m.vals;
     let b=('<form id="q_form" novalidate><input type="text" class="big" id="f_title" placeholder="'+_('שם המשימה')+'" value="')+esc(v.title)+('" maxlength="120" autocomplete="off" enterkeyhint="done" aria-label="'+_('שם המשימה')+'">');
@@ -962,7 +1022,7 @@ function renderModal(){
     const t=T(m.id);if(!t){closeModal();return}
     const when=t.general?_('משימה כללית'):esc(longDay(t.date))+(t.time?' · <span class="ltr">'+esc(t.time)+(endMin(t)!==null?'–'+esc(t.endTime):'')+'</span>':'');
     h=sheet(_('פרטי המשימה'),'<div class="vtitle">'+esc(t.title)+'</div><div class="note">'+when+'</div><div class="vdet">'+esc(t.details||'')+('</div><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('סגירה')+'</button>')+(t.movedTo?'':('<button type="button" class="pbtn" data-act="view-edit">'+_('עריכה')+'</button>'))+'</div>');
-  }else if(m.type==='goal'||m.type==='glog'||m.type==='gdel'||m.type==='gkill'){
+  }else if(m.type==='goal'||m.type==='glog'||m.type==='gdel'||m.type==='gkill'||m.type==='gpast'){
     h=goalModalHtml(m);
   }
   root.innerHTML=h;
@@ -1004,7 +1064,7 @@ function openPop(id,btn){
   const r=btn.getBoundingClientRect();
   S.pop={id,sy:window.scrollY};
   const root=$('#popRoot');
-  root.innerHTML='<div class="pop" role="menu" id="popBox">'+(t.movedTo?'':('<button type="button" role="menuitem" data-act="pop-edit">✏️ '+_('עריכה')+'</button>'))+(!t.general&&!t.movedTo?('<button type="button" role="menuitem" data-act="pop-move">↔️ '+_('העברה')+'</button>'):'')+(t.details?('<button type="button" role="menuitem" data-act="pop-view">📝 '+_('פרטים')+'</button>'):'')+(canGeneral(t)?('<button type="button" role="menuitem" data-act="pop-gen">📌 '+_('הפוך למשימה כללית')+'</button>'):'')+('<button type="button" role="menuitem" class="rd" data-act="pop-del">🗑️ '+_('מחיקה')+'</button></div>');
+  root.innerHTML='<div class="pop" role="menu" id="popBox">'+(t.movedTo?'':('<button type="button" role="menuitem" data-act="pop-edit">✏️ '+_('עריכה')+'</button>'))+(!t.general&&!t.movedTo&&!t.done&&t.date<todayIL()?('<button type="button" role="menuitem" data-act="pop-today">⬅️ '+_('להיום')+'</button>'):'')+(!t.general&&!t.movedTo&&!t.done&&t.date!==addDays(todayIL(),1)?('<button type="button" role="menuitem" data-act="pop-tmr">⬅️ '+_('למחר')+'</button>'):'')+(!t.general&&!t.movedTo?('<button type="button" role="menuitem" data-act="pop-move">↔️ '+_('העברה')+'</button>'):'')+(t.details?('<button type="button" role="menuitem" data-act="pop-view">📝 '+_('פרטים')+'</button>'):'')+(canGeneral(t)?('<button type="button" role="menuitem" data-act="pop-gen">📌 '+_('הפוך למשימה כללית')+'</button>'):'')+('<button type="button" role="menuitem" class="rd" data-act="pop-del">🗑️ '+_('מחיקה')+'</button></div>');
   const box=$('#popBox'),w=box.offsetWidth,hh=box.offsetHeight;
   let left=Math.min(Math.max(8,r.left),innerWidth-w-8),top=r.bottom+2;
   if(top+hh>innerHeight-8)top=Math.max(8,r.top-hh-2);
@@ -1139,7 +1199,7 @@ function dragMove(x,y){
       if(c){
         const d=c.dataset.d;
         if(!t.general&&d===t.date)prop={k:'cell',d,same:true};
-        else if(d<todayIL())prop={k:'cell',d,bad:true};
+        else if(d<todayIL()&&!DR.chip)prop={k:'cell',d,bad:true};
         else{c.classList.add('over');prop={k:'cell',d}}
       }else prop=genZone(el,t);
     }else if(S.view==='day'&&el&&el.closest){
@@ -1163,7 +1223,9 @@ function dropChip(prop){
   if(prop.k==='cell')d=prop.d;
   else if(prop.k==='none'||prop.k==='tl'){d=S.sel;if(prop.k==='tl')time=fromMin(prop.s)}
   else return;
-  if(prop.bad||d<today){toast(_('אי אפשר לתכנן פעילות ליום שעבר.'));return}
+  if(prop.bad)return;
+  /* יום שעבר: שואלים אם להוסיף כפעילות שכבר בוצעה */
+  if(d<today){modal({type:'gpast',gid:DR.chip.gid,sub:DR.chip.sub,d,time});return}
   planGoalTask(DR.chip.gid,DR.chip.sub,d,time);
   if(S.view==='month'){S.sel=d;S.month=d.slice(0,7)}
   toast(_('הפעילות תוכננה ל־')+dayName(d)+(time?(' '+_('בשעה')+' ')+time:''));
@@ -1253,8 +1315,9 @@ document.addEventListener('click',e=>{if(performance.now()-DR.endT<150){e.stopPr
 /* ===== אירועים ===== */
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');
+  const hadPop=!!S.pop;
   if(S.pop&&!(e.target.closest&&e.target.closest('.pop')))closePop();
-  if(!el)return;
+  if(!el){if(!hadPop&&S.view==='day'&&!S.modal&&!S.pick&&e.target.closest&&e.target.closest('#tl')&&!e.target.closest('.tk'))slotTap(e);return}
   const a=el.dataset.act,id=el.dataset.id;
   /* בוחרים */
   if(S.pick){
@@ -1282,6 +1345,10 @@ document.addEventListener('click',e=>{
   if(settingsClick(a,el,id,e))return;
   if(a==='more'){const d=el.dataset.d;S.expand=S.expand===d?'':d;render();return}
   if(a==='mv-cancel'){S.moving=null;render();return}
+  if(a==='pop-today'||a==='pop-tmr'){const t=T(S.pop&&S.pop.id);closePop();if(t)moveToDay(t,a==='pop-today'?todayIL():addDays(todayIL(),1));return}
+  if(a==='mv-yday'){moveYesterdayMissed();return}
+  if(a==='slot-new'){const mn=S.modal&&S.modal.min;closeModal();openQuick({date:S.sel,time:fromMin(mn)});return}
+  if(a==='slot-pick'){const mn=S.modal&&S.modal.min,t=T(id);closeModal();if(t){withUndo(_('המשימה הועברה'),()=>applyDrop(t,{k:'tl',s:mn,e:0}));render()}return}
   if(a==='pop-move'){
     const pid=S.pop&&S.pop.id;closePop();const t=T(pid);if(!t||t.general||t.movedTo)return;
     S.moving={id:t.id};S.month=t.date.slice(0,7);S.sel=t.date;S.expand='';S.autoScroll=true;
@@ -1322,9 +1389,17 @@ document.addEventListener('click',e=>{
     else{closeModal();withUndo(scope==='from'?_('המשימות נמחקו'):_('המשימה נמחקה'),()=>deleteTask(t.id,scope));render()}
     return}
   if(a==='view-edit'){const t=T(m.id);if(!t)return;if(t.seriesId)modal({type:'scope',id:t.id,op:'edit'});else editFormOf(t,'one');return}
-  if(a==='cont-yes'){const sr=S.series.find(x=>x.id===m.sid);closeModal();if(sr)continueSeries(sr);render();checkSeries();return}
-  if(a==='cont-no'){const sr=S.series.find(x=>x.id===m.sid);closeModal();if(sr)updSeries(sr.id,{ended:true});render();checkSeries();return}
-  if(a==='cont-later'){S.dismissed.add(m.sid);closeModal();checkSeries();return}
+  if(a==='cont-yes'||a==='cont-no'||a==='cont-apply'){
+    const ids=m.sids||[];closeModal();
+    /* בזמן הכתיבה לא שואלים שוב על אותן סדרות */
+    ids.forEach(id=>S.dismissed.add(id));
+    ids.forEach(id=>{const sr=S.series.find(x=>x.id===id);if(!sr)return;
+      const go=a==='cont-yes'||(a==='cont-apply'&&m.keep[id]!==false);
+      if(go)continueSeries(sr);else updSeries(sr.id,{ended:true})});
+    render();checkSeries();return}
+  if(a==='cont-later'){(m.sids||[]).forEach(id=>S.dismissed.add(id));closeModal();return}
+  if(a==='cont-choose'){m.choose=true;m.keep={};renderModal();return}
+  if(a==='cont-set'){m.keep[el.dataset.sid]=el.dataset.v==='1';renderModal();return}
   if(a==='del-yes'){const i=m.id;closeModal();withUndo(_('המשימה נמחקה'),()=>deleteTask(i,'one'));render();return}
   /* הוספה מהירה */
   if(a==='q-time'){collectForm();openTimePicker(m.vals.time,v=>{m.vals.time=v;rerenderForm()});return}
@@ -1397,6 +1472,34 @@ document.addEventListener('keydown',e=>{
 addEventListener('resize',()=>{closePop();if(S.loaded.t)render()});
 let scrollRaf=0;
 addEventListener('scroll',()=>{if(S.pop&&Math.abs(window.scrollY-S.pop.sy)>8)closePop();if(!scrollRaf)scrollRaf=requestAnimationFrame(()=>{scrollRaf=0;dayScrollCheck()})},{passive:true});
+/* ⋮ → להיום / למחר: רק התאריך משתנה. משימה שהוחמצה עוברת דרך מנגנון ההעברה ששומר היסטוריה ("הועבר מ־") */
+function moveToDay(t,d){
+  if(d===t.date){toast(_('זה היום של המשימה.'));return}
+  withUndo(_('המשימה הועברה'),()=>{
+    if(status(t,todayIL())==='missed')moveTask(t.id,d);else updTask(t.id,{date:d});
+    toast(_('המשימה עברה ל־')+dayName(d));
+  });
+  render();
+}
+/* משימות של אתמול שלא הושלמו (בלי משימות שכבר הועברו) */
+const yesterdayMissed=()=>{const today=todayIL(),y=addDays(today,-1);return S.tasks.filter(t=>!t.general&&t.date===y&&status(t,today)==='missed')};
+function moveYesterdayMissed(){
+  const list=yesterdayMissed(),today=todayIL();if(!list.length)return;
+  withUndo(_('המשימות הועברו'),()=>{list.forEach(t=>moveTask(t.id,today));toast(_('{n} משימות הועברו מאתמול להיום',{n:list.length}))});
+  render();
+}
+function yesterdayBtn(){
+  const n=yesterdayMissed().length;if(!n)return '';
+  return '<button type="button" class="gbtn ydbtn" data-act="mv-yday">⬅️ '+(n===1?_('העבר להיום משימה אחת שהוחמצה אתמול'):_('העבר להיום {n} משימות שהוחמצו אתמול',{n}))+'</button>';
+}
+/* הקשה על מקום ריק בציר השעות: משימה חדשה בשעה הזו, או שיבוץ משימה קיימת (ללא שעה / כללית) */
+function slotTap(e){
+  /* לא בהקשה השנייה של הקשה כפולה, ולא מיד אחרי פתיחת מסך היום (כדי שהקשה שפתחה את היום לא תפתח גם את החלון) */
+  if(e.detail>1||performance.now()-(S.dayAt||-1e9)<600)return;
+  const m0=minAt(e.clientY);if(m0===null||m0<0)return;
+  const min=Math.max(0,Math.min(floor30(m0),1410));
+  modal({type:'slot',min});
+}
 /* העברה: הקשה על תאריך במצב העברה (חלופה לגרירה) */
 function moveCommit(d){
   const t=S.moving&&T(S.moving.id);
@@ -1458,9 +1561,9 @@ const doneText=st=>'<span class="ltr">'+st.done+'/'+st.target+('</span> '+_('ה�
 const pct=st=>Math.max(0,Math.min(100,Math.round(st.done/st.target*100)));
 
 /* ===== פעולות על נתונים ===== */
-function planGoalTask(gid,sub,date,time){
+function planGoalTask(gid,sub,date,time,done){
   if(!gById(gid))return;
-  dbSet('cal_tasks',newId(),{title:goalTaskTitle(gid,sub),details:'',time:time||'',endTime:'',date,done:false,reminders:[],goalId:gid,goalSub:sub||'',createdAt:Date.now()});
+  dbSet('cal_tasks',newId(),{title:goalTaskTitle(gid,sub),details:'',time:time||'',endTime:'',date,done:!!done,doneAt:done?Date.now():0,reminders:[],goalId:gid,goalSub:sub||'',createdAt:Date.now()});
 }
 function addGoalLog(gid,date,sub,note){
   const g=gById(gid);if(!g)return;
@@ -1676,6 +1779,10 @@ function goalModalHtml(m){
     b+=('<textarea class="dta" id="gl_note" rows="2" maxlength="300" placeholder="'+_('הערה (לא חובה)')+'" aria-label="'+_('הערה')+'">')+esc(v.note||'')+('</textarea><div class="err" id="f_err" role="alert"></div><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="submit" class="pbtn">'+_('הוסף')+'</button></div></form>');
     return sheet(_('הוספת פעילות שבוצעה'),b);
   }
+  if(m.type==='gpast'){
+    if(!gById(m.gid))return '';
+    return sheet(_('יום שעבר'),'<p class="note">«'+esc(goalTaskTitle(m.gid,m.sub))+'» · '+esc(longDay(m.d))+(m.time?' · <span class="ltr">'+esc(m.time)+'</span>':'')+'</p><p class="note">'+_('זה יום שעבר. להוסיף כפעילות שבוצעה?')+'</p><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="pbtn" data-act="g-past-yes">✓ '+_('כן, בוצע')+'</button></div>');
+  }
   if(m.type==='gkill'){
     const g=gById(m.id);if(!g)return '';
     return sheet(_('מחיקת יעד'),'<p class="note">'+_('למחוק את היעד')+' «'+esc(g.title)+'»?</p><p class="note">'+_('המשימות שתוכננו ליעד יישארו ביומן כמשימות רגילות. העדכונים הידניים של היעד יימחקו.')+'</p><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="dbtn" data-act="g-del-yes">'+_('מחיקה')+'</button></div>');
@@ -1761,16 +1868,18 @@ function goalClick(a,el,id,e){
   if(a==='g-menu'){if(S.pop&&S.pop.goal&&S.pop.id===id){closePop();return true}openGoalPop(id,el);return true}
   if(a==='g-tog'){if(S.gOpen.has(id))S.gOpen.delete(id);else S.gOpen.add(id);render();return true}
   if(a==='sec-tog'){const k=el.dataset.k;S.dayUI[k]=!S.dayUI[k];S.dayUI.manual=true;applyDayUI();return true}
+  if(a==='g-past-yes'){const x=m;closeModal();if(x&&gById(x.gid)){withUndo(_('הפעילות נוספה'),()=>{planGoalTask(x.gid,x.sub,x.d,x.time,true);toast(_('נוספה פעילות שבוצעה ל־')+dayName(x.d))});render()}return true}
   if(a==='g-del'){closePop();if(gById(id))modal({type:'gkill',id});return true}
   if(a==='g-del-yes'){const gid=m&&m.id;closeModal();if(gid)withUndo(_('היעד נמחק'),()=>deleteGoal(gid));return true}
   if(a==='g-day'){openDay(el.dataset.d);return true}
   if(a==='g-plan'){
     const gid=el.dataset.gid,sub=el.dataset.sub||'';
     if(el.dataset.day){
-      if(S.sel<today){toast(_('אי אפשר לתכנן פעילות ליום שעבר.'));return true}
+      if(S.sel<today){modal({type:'gpast',gid,sub,d:S.sel,time:''});return true}
       planGoalTask(gid,sub,S.sel,'');toast(_('הפעילות נוספה ל־')+dayName(S.sel));return true;
     }
-    openDatePicker(today,today,d=>{
+    openDatePicker(today,'',d=>{
+      if(d<todayIL()){modal({type:'gpast',gid,sub,d,time:''});return}
       planGoalTask(gid,sub,d,'');
       if(S.view==='month'){S.sel=d;S.month=d.slice(0,7)}
       render();toast(_('הפעילות תוכננה ל־')+dayName(d));
@@ -1801,6 +1910,104 @@ function goalClick(a,el,id,e){
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target&&e.target.id==='g_subin'){e.preventDefault();if(addSubFromInput()){rerenderGoalForm();const i=$('#g_subin');if(i)i.focus()}}
 });
+/* ===== לוח עברי: חישוב מקומי (בלי אינטרנט ובלי ספריות), לפי האלגוריתם הסטנדרטי של הלוח העברי (מולד ודחיות).
+   תאריכים לועזיים הם מחרוזות "YYYY-MM-DD". החגים לפי מנהג ארץ ישראל (יום טוב אחד), כולל הזזות של ימי זיכרון ועצמאות וצומות ===== */
+const HEB_EPOCH=-1373427;
+const hebLeap=y=>(7*y+1)%19<7;
+function hebElapsed(y){const m=Math.floor((235*y-234)/19),p=12084+13753*m;let d=29*m+Math.floor(p/25920);if((3*(d+1))%7<3)d++;return d}
+const hebNY=y=>{const l=hebElapsed(y-1),p=hebElapsed(y),n=hebElapsed(y+1);return HEB_EPOCH+p+(n-p===356?2:p-l===382?1:0)};
+const fixedOf=s=>{const [y,m,d]=P(s);return Math.round(Date.UTC(y,m-1,d)/86400000)+719163};
+const dateOfFixed=f=>{const t=new Date((f-719163)*86400000);return F(t.getUTCFullYear(),t.getUTCMonth()+1,t.getUTCDate())};
+/* חודשי השנה לפי הסדר מתשרי. במקום "אדר" בשנה מעוברת יש "אדר א׳" ו"אדר ב׳" (המפתח adar הוא אדר ב׳) */
+function hebMonths(y){
+  const len=hebNY(y+1)-hebNY(y);
+  const m=[['tishrei',30],['cheshvan',len%10===5?30:29],['kislev',len%10===3?29:30],['tevet',29],['shevat',30]];
+  if(hebLeap(y))m.push(['adar1',30]);
+  m.push(['adar',29],['nisan',30],['iyar',29],['sivan',30],['tamuz',29],['av',30],['elul',29]);
+  return m;
+}
+const HEB_CACHE=new Map();
+function hebDate(s){
+  if(HEB_CACHE.has(s))return HEB_CACHE.get(s);
+  const f=fixedOf(s);let y=Math.floor((f-HEB_EPOCH)/365.2468)+1;
+  while(hebNY(y)>f)y--;while(hebNY(y+1)<=f)y++;
+  let rem=f-hebNY(y),mo=null;
+  for(const [k,n] of hebMonths(y)){if(rem<n){mo=k;break}rem-=n}
+  const r={y,m:mo,d:rem+1,leap:hebLeap(y)};HEB_CACHE.set(s,r);return r;
+}
+/* תאריך לועזי של יום בחודש עברי בשנה נתונה */
+function gregOf(y,mo,d){let f=hebNY(y);for(const [k,n] of hebMonths(y)){if(k===mo)return dateOfFixed(f+d-1);f+=n}return null}
+/* מספרים באותיות */
+function gem(n){
+  const ones=['','א','ב','ג','ד','ה','ו','ז','ח','ט'],tens=['','י','כ','ל','מ','נ','ס','ע','פ','צ'],huns=['','ק','ר','ש','ת'];
+  let s='';n=n%1000;while(n>=400){s+='ת';n-=400}if(n>=100){s+=huns[Math.floor(n/100)];n%=100}
+  if(n===15)s+='טו';else if(n===16)s+='טז';else{s+=tens[Math.floor(n/10)]+ones[n%10]}
+  return s.length===1?s+'׳':s.slice(0,-1)+'״'+s.slice(-1);
+}
+const HEB_MN={tishrei:'תשרי',cheshvan:'חשוון',kislev:'כסלו',tevet:'טבת',shevat:'שבט',adar1:'אדר א׳',adar:'אדר',nisan:'ניסן',iyar:'אייר',sivan:'סיוון',tamuz:'תמוז',av:'אב',elul:'אלול'};
+const hebMonthName=(h)=>h.m==='adar'&&h.leap?'אדר ב׳':HEB_MN[h.m];
+const hebDayStr=s=>gem(hebDate(s).d);
+const hebFull=s=>{const h=hebDate(s);return gem(h.d)+' '+hebMonthName(h)+' '+gem(h.y)};
+/* כותרת חודש: החודשים העבריים שהחודש הלועזי עובר בהם, למשל "תשרי–חשוון תשפ״ז" */
+function hebMonthRange(ym){
+  const a=hebDate(ym+'-01'),b=hebDate(monthEnd(ym+'-01'));
+  if(a.m===b.m&&a.y===b.y)return hebMonthName(a)+' '+gem(a.y);
+  return hebMonthName(a)+(a.y!==b.y?' '+gem(a.y):'')+'–'+hebMonthName(b)+' '+gem(b.y);
+}
+/* חגים בשנה עברית: [מפתח, תאריך לועזי, האם יום חופש (חג)] */
+const HOL_CACHE=new Map();
+function holidaysOfYear(y){
+  if(HOL_CACHE.has(y))return HOL_CACHE.get(y);
+  const g=(m,d)=>gregOf(y,m,d),out=[];
+  const add=(k,s,chag)=>out.push([k,s,!!chag]);
+  const dow=s=>dowOf(s);
+  const ifSat=(s,delta)=>dow(s)===6?addDays(s,delta):s;
+  add('erev_rh',addDays(g('tishrei',1),-1));
+  add('rh1',g('tishrei',1),1);add('rh2',g('tishrei',2),1);
+  add('gedalia',ifSat(g('tishrei',3),1));
+  add('erev_yk',g('tishrei',9));add('yk',g('tishrei',10),1);
+  add('erev_sukkot',g('tishrei',14));add('sukkot',g('tishrei',15),1);
+  for(let d=16;d<=20;d++)add('chm_sukkot',g('tishrei',d));
+  add('hoshana',g('tishrei',21));add('simchat',g('tishrei',22),1);
+  const ch=g('kislev',25);for(let i=0;i<8;i++)add('chanukah'+(i+1),addDays(ch,i));
+  add('tevet10',g('tevet',10));
+  add('tubishvat',g('shevat',15));
+  const pm=hebLeap(y)?'adar':'adar';
+  let te=g(pm,13);if(dow(te)===6)te=addDays(te,-2);add('esther',te);
+  add('purim',g(pm,14));add('shushan',g(pm,15));
+  if(hebLeap(y))add('purimkatan',g('adar1',14));
+  add('erev_pesach',g('nisan',14));add('pesach',g('nisan',15),1);
+  for(let d=16;d<=20;d++)add('chm_pesach',g('nisan',d));
+  add('pesach7',g('nisan',21),1);
+  let sh=g('nisan',27);if(dow(sh)===5)sh=addDays(sh,-1);else if(dow(sh)===0)sh=addDays(sh,1);add('shoah',sh);
+  let at=g('iyar',5);const ad=dow(at);if(ad===5)at=addDays(at,-1);else if(ad===6)at=addDays(at,-2);else if(ad===1)at=addDays(at,1);
+  add('zikaron',addDays(at,-1));add('atzmaut',at,1);
+  add('pesachsheni',g('iyar',14));add('lagbaomer',g('iyar',18));add('yerushalaim',g('iyar',28));
+  add('erev_shavuot',g('sivan',5));add('shavuot',g('sivan',6),1);
+  add('tamuz17',ifSat(g('tamuz',17),1));
+  add('av9',ifSat(g('av',9),1));add('tubeav',g('av',15));
+  HOL_CACHE.set(y,out);return out;
+}
+const HOL_NAME={erev_rh:'ערב ראש השנה',rh1:'ראש השנה',rh2:'ראש השנה ב׳',gedalia:'צום גדליה',erev_yk:'ערב יום כיפור',yk:'יום כיפור',erev_sukkot:'ערב סוכות',sukkot:'סוכות',chm_sukkot:'חול המועד סוכות',hoshana:'הושענא רבה',simchat:'שמחת תורה',tevet10:'צום עשרה בטבת',tubishvat:'ט״ו בשבט',esther:'תענית אסתר',purim:'פורים',shushan:'שושן פורים',erev_pesach:'ערב פסח',pesach:'פסח',chm_pesach:'חול המועד פסח',pesach7:'שביעי של פסח',shoah:'יום השואה',zikaron:'יום הזיכרון',atzmaut:'יום העצמאות',lagbaomer:'ל״ג בעומר',yerushalaim:'יום ירושלים',erev_shavuot:'ערב שבועות',shavuot:'שבועות',tamuz17:'צום י״ז בתמוז',av9:'תשעה באב',tubeav:'ט״ו באב',purimkatan:'פורים קטן',pesachsheni:'פסח שני'};
+const holName=k=>k.startsWith('chanukah')?_('חנוכה')+' · '+_('נר {n}',{n:k.slice(8)}):_(HOL_NAME[k]);
+/* החגים של תאריך לועזי מסוים */
+function holidaysOn(s){
+  const h=hebDate(s);const r=[];
+  for(const y of [h.y,h.y+1])for(const [k,d,c] of holidaysOfYear(y))if(d===s)r.push({k,name:holName(k),chag:c});
+  return r;
+}
+/* תצוגה */
+function holCell(ds){
+  if(!PREFS.hol)return '';
+  const l=holidaysOn(ds);if(!l.length)return '';
+  return '<span class="hol'+(l.some(x=>x.chag)?' c':'')+'" title="'+esc(l.map(x=>x.name).join(' · '))+'">'+esc(l[0].name)+'</span>';
+}
+function hebDayLine(d){
+  const a=[];
+  if(PREFS.hdate)a.push('<span class="hfull">'+hebFull(d)+'</span>');
+  if(PREFS.hol){const l=holidaysOn(d);if(l.length)a.push('<span class="hholn'+(l.some(x=>x.chag)?' c':'')+'">'+esc(l.map(x=>x.name).join(' · '))+'</span>')}
+  return a.length?'<div class="hline">'+a.join(' · ')+'</div>':'';
+}
 /* ===== מסך הגדרות, התנתקות וחידושים (גרסה 0.5) ===== */
 /* חידושים: רק יכולות אמיתיות שקיימות בגרסה המותקנת. series = מזהה העדכון; כל סדרה חדשה מתחילה מחדש,
    וסדרה שכבר אושרה לא חוזרת. עדכון קטן בלי חידוש לא מוסיף סדרה ולכן לא מציג כלום. */
@@ -1813,7 +2020,10 @@ const NEWS=[
   {id:'lang',series:'0.5',ic:'🌐',t:'עברית ואנגלית',x:'בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.'},
   {id:'undo',series:'0.6',ic:'↩️',t:'כפתור "בטל"',x:'אחרי מחיקה או גרירה מופיע למטה כפתור "בטל" לכמה שניות, שמחזיר את המצב כמו שהיה.'},
   {id:'backup',series:'0.6',ic:'💾',t:'גיבוי הנתונים',x:'בהגדרות ⚙️ ← גיבוי אפשר לשמור קובץ עם כל המשימות והיעדים.'},
-  {id:'update',series:'0.6',ic:'🔄',t:'הודעה על גרסה חדשה',x:'כשיוצאת גרסה חדשה מופיעה למעלה הודעה, ולחיצה עליה מעדכנת את האפליקציה.'}
+  {id:'update',series:'0.6',ic:'🔄',t:'הודעה על גרסה חדשה',x:'כשיוצאת גרסה חדשה מופיעה למעלה הודעה, ולחיצה עליה מעדכנת את האפליקציה.'},
+  {id:'slot',series:'0.7',ic:'🕐',t:'הקשה על שעה',x:'הקשה על מקום ריק בציר השעות מוסיפה משימה בשעה הזו, או משבצת בה משימה קיימת.'},
+  {id:'quickmove',series:'0.7',ic:'⬅️',t:'העברה מהירה',x:'בתפריט ⋮ יש "למחר" ו"להיום", ובמסך היום כפתור שמעביר להיום את מה שהוחמץ אתמול.'},
+  {id:'hebcal',series:'0.7',ic:'🕎',t:'חגים בלוח',x:'בלוח מסומנים חגים ותאריך עברי, ובהגדרות ⚙️ אפשר לכבות אותם או להוסיף חודש עברי.'}
 ];
 const NEWS_SERIES=NEWS[NEWS.length-1].series;
 function newsLoad(){let n={};try{n=JSON.parse(lsGet('cal.news')||'{}')||{}}catch(e){n={}}if(!n.ack||typeof n.ack!=='object')n.ack={};return n}
@@ -1845,6 +2055,7 @@ function settingsClick(a,el,id,e){
   if(a==='set-lang'){setPrefs({lang:el.dataset.v});render();renderNews();if(S.modal)renderModal();return true}
   if(a==='logout'){modal({type:'logout'});return true}
   if(a==='export'){exportData();return true}
+  if(a==='set-tgl'){const k=el.dataset.k;setPrefs({[k]:!PREFS[k]});render();return true}
   if(a==='upd-go'){location.reload();return true}
   if(a==='logout-yes'){closeModal();if(S.signOut)S.signOut();return true}
   return false;
@@ -1861,6 +2072,7 @@ function renderSettings(){
    +'<section class="sgrp" aria-labelledby="sg1"><h2 id="sg1">'+_('חשבון')+'</h2>'+acc+'</section>'
    +'<section class="sgrp" aria-labelledby="sg2"><h2 id="sg2">'+_('מראה')+'</h2>'+seg('set-theme',PREFS.theme,[['light','☀️ '+_('בהיר')],['dark','🌙 '+_('כהה')],['auto','🖥️ '+_('אוטומטי')]])+'</section>'
    +'<section class="sgrp" aria-labelledby="sg3"><h2 id="sg3">'+_('שפה')+'</h2>'+seg('set-lang',PREFS.lang,[['he','עברית 🇮🇱'],['en','English 🇬🇧']])+'</section>'
+   +'<section class="sgrp" aria-labelledby="sg7"><h2 id="sg7">'+_('לוח עברי')+'</h2>'+[['hol',_('חגים ומועדים')],['hdate',_('תאריך עברי בכל יום')],['hmonth',_('חודש עברי בכותרת')]].map(([k,l])=>'<button type="button" class="tgl" role="switch" aria-checked="'+!!PREFS[k]+'" data-act="set-tgl" data-k="'+k+'"><span>'+l+'</span><i aria-hidden="true"></i></button>').join('')+'</section>'
    +'<section class="sgrp" aria-labelledby="sg6"><h2 id="sg6">'+_('גיבוי')+'</h2><button type="button" class="gbtn wide" data-act="export">💾 '+_('ייצוא כל הנתונים לקובץ')+'</button><div class="note">'+_('נשמר קובץ עם כל המשימות, המשימות החוזרות, היעדים והעדכונים. מומלץ לשמור אותו מדי פעם במקום בטוח.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg4"><h2 id="sg4">'+_('התנתקות')+'</h2><button type="button" class="dbtn wide" data-act="logout">'+_('התנתק')+'</button><div class="note">'+_('ההתנתקות לא מוחקת משימות, יעדים או היסטוריה.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg5"><h2 id="sg5">'+_('מה חדש?')+'</h2>'+news+'</section>'
