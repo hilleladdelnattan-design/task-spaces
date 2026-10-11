@@ -358,12 +358,16 @@ body.offline .wrap{padding-top:calc(34px + env(safe-area-inset-top))}
 :root{--holc:#b45309;--holbg:#fff7ed}
 :root[data-theme="dark"]{--holc:#f5b467;--holbg:#2a2117}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]){--holc:#f5b467;--holbg:#2a2117}}
-.cell .nrow{display:flex;align-items:center;gap:3px;min-width:0}
+.cell .nrow{display:flex;flex-wrap:wrap;align-items:center;column-gap:3px;min-width:0}
 .cell .hdn{font-size:9.5px;color:var(--muted);opacity:.85;white-space:nowrap}
-.cell .hol{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:9.5px;line-height:1.2;color:var(--holc);font-weight:600;overflow:hidden;word-break:break-word;padding:0 3px}
+/* שם החג צמוד למספר ולתאריך העברי כשיש מקום (מחשב); בתא צר (טלפון) הוא יורד לשורה קטנה מתחת */
+.cell .nrow .hol{flex:0 1 auto;max-width:100%;font-size:9.5px;line-height:14px;color:var(--holc);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .nrow .hol.rc{color:var(--accent)}
+.hline .hholn.rc{color:var(--accent)}
 .cell.chag{background:var(--holbg)}
 .cell.chag.sel{background:var(--accent-soft)}
 .grid.xpg .cell:not(.xp) .hol,.grid.xpg .cell:not(.xp) .hdn{display:none}
+.cell.xp .nrow .hol{white-space:normal}
 .grid.xpg .cell:not(.xp) .nrow{justify-content:center}
 @media(min-width:640px){.cell .hdn,.cell .hol{font-size:11px}}
 .hline{font-size:13px;color:var(--muted);margin-top:2px}
@@ -722,7 +726,7 @@ function renderMonth(){
     /* "עוד" מופיע בכל יום שיש בו לפחות משימה אחת (גם כשאין משימות מוסתרות) */
     if(list.length)items+='<span class="more" data-act="more" data-d="'+ds+'" role="button" aria-label="'+_('כל המשימות של היום')+'" aria-expanded="'+(xd===ds)+'"><span class="mc ltr">'+(list.length>shown?'+'+(list.length-shown)+' ':'')+'⤢</span><span class="ml">⌃</span></span>';
     const mvc=mvT?(ds<today?' mvno':ds===mvT.date?' mvown':' mvok'):'';
-    cells+='<button type="button" class="cell'+(ds===today?' today':'')+(PREFS.hol&&holidaysOn(ds).some(x=>x.chag)?' chag':'')+(ds===S.sel?' sel':'')+(xd===ds?' xp':'')+mvc+'" data-act="day" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+(' '+_('משימות')+'"><span class="nrow"><span class="n">')+d+'</span>'+(PREFS.hdate?'<span class="hdn">'+hebDayStr(ds)+'</span>':'')+'</span>'+holCell(ds)+items+'</button>';
+    cells+='<button type="button" class="cell'+(ds===today?' today':'')+(PREFS.hol&&holidaysOn(ds).some(x=>x.chag)?' chag':'')+(ds===S.sel?' sel':'')+(xd===ds?' xp':'')+mvc+'" data-act="day" data-d="'+ds+'" aria-label="'+esc(longDay(ds))+', '+list.length+(' '+_('משימות')+'"><span class="nrow"><span class="n">')+d+'</span>'+(PREFS.hdate?'<span class="hdn">'+hebDayStr(ds)+'</span>':'')+holCell(ds)+'</span>'+items+'</button>';
   }
   const sl=S.tasks.filter(t=>!t.general&&t.date===S.sel);
   const panel='<div class="dpanel" id="dpanel"><h2>'+esc(longDay(S.sel))+(S.sel===today?('<span class="tag">'+_('היום')+'</span>'):'')+'</h2>'+hebDayLine(S.sel)+'<div class="dsum">'+summary(sl)+'</div>'+(S.sel===today?yesterdayBtn():'')+('<div class="btns"><button type="button" class="pbtn" data-act="add">＋ '+_('הוסף משימה')+'</button><button type="button" class="gbtn" data-act="open-day">'+_('פתח את היום')+'</button></div></div>');
@@ -1986,26 +1990,40 @@ function holidaysOfYear(y){
   add('erev_shavuot',g('sivan',5));add('shavuot',g('sivan',6),1);
   add('tamuz17',ifSat(g('tamuz',17),1));
   add('av9',ifSat(g('av',9),1));add('tubeav',g('av',15));
+  /* ראש חודש: היום הראשון בחודש, וגם היום ה־30 של החודש הקודם כשיש בו 30 יום (ראש חודש של יומיים). לא בתשרי (ראש השנה) */
+  const ms=hebMonths(y);let f=hebNY(y);
+  ms.forEach(([k,n],i)=>{
+    if(i>0){add('rc:'+k,dateOfFixed(f));if(ms[i-1][1]===30)add('rc:'+k,dateOfFixed(f-1))}
+    f+=n;
+  });
   HOL_CACHE.set(y,out);return out;
 }
 const HOL_NAME={erev_rh:'ערב ראש השנה',rh1:'ראש השנה',rh2:'ראש השנה ב׳',gedalia:'צום גדליה',erev_yk:'ערב יום כיפור',yk:'יום כיפור',erev_sukkot:'ערב סוכות',sukkot:'סוכות',chm_sukkot:'חול המועד סוכות',hoshana:'הושענא רבה',simchat:'שמחת תורה',tevet10:'צום עשרה בטבת',tubishvat:'ט״ו בשבט',esther:'תענית אסתר',purim:'פורים',shushan:'שושן פורים',erev_pesach:'ערב פסח',pesach:'פסח',chm_pesach:'חול המועד פסח',pesach7:'שביעי של פסח',shoah:'יום השואה',zikaron:'יום הזיכרון',atzmaut:'יום העצמאות',lagbaomer:'ל״ג בעומר',yerushalaim:'יום ירושלים',erev_shavuot:'ערב שבועות',shavuot:'שבועות',tamuz17:'צום י״ז בתמוז',av9:'תשעה באב',tubeav:'ט״ו באב',purimkatan:'פורים קטן',pesachsheni:'פסח שני'};
-const holName=k=>k.startsWith('chanukah')?_('חנוכה')+' · '+_('נר {n}',{n:k.slice(8)}):_(HOL_NAME[k]);
+const holName=k=>k.startsWith('rc:')?rcName(k.slice(3)):k.startsWith('chanukah')?_('חנוכה')+' · '+_('נר {n}',{n:k.slice(8)}):_(HOL_NAME[k]);
+const HEB_MN_EN={tishrei:'Tishrei',cheshvan:'Cheshvan',kislev:'Kislev',tevet:'Tevet',shevat:'Shevat',adar1:'Adar I',adar:'Adar',nisan:'Nisan',iyar:'Iyar',sivan:'Sivan',tamuz:'Tammuz',av:'Av',elul:'Elul'};
+function rcName(m){
+  const leapAdar2=m==='adar'&&holidaysOfYear._leap;
+  if(LANG==='en')return 'Rosh Chodesh '+(leapAdar2?'Adar II':HEB_MN_EN[m]);
+  return 'ר״ח '+(leapAdar2?'אדר ב׳':HEB_MN[m]);
+}
 /* החגים של תאריך לועזי מסוים */
 function holidaysOn(s){
   const h=hebDate(s);const r=[];
-  for(const y of [h.y,h.y+1])for(const [k,d,c] of holidaysOfYear(y))if(d===s)r.push({k,name:holName(k),chag:c});
+  for(const y of [h.y,h.y+1])for(const [k,d,c] of holidaysOfYear(y))if(d===s){holidaysOfYear._leap=hebLeap(y);r.push({k,name:holName(k),chag:c,rc:k.startsWith('rc:')})}
   return r;
 }
 /* תצוגה */
 function holCell(ds){
   if(!PREFS.hol)return '';
   const l=holidaysOn(ds);if(!l.length)return '';
-  return '<span class="hol'+(l.some(x=>x.chag)?' c':'')+'" title="'+esc(l.map(x=>x.name).join(' · '))+'">'+esc(l[0].name)+'</span>';
+  /* אם יש חג וגם ראש חודש באותו יום, מוצג החג (ראש חודש נשאר בכותרת המלאה) */
+  const main=l.find(x=>!x.rc)||l[0];
+  return '<span class="hol'+(l.some(x=>x.chag)?' c':'')+(main.rc?' rc':'')+'" title="'+esc(l.map(x=>x.name).join(' · '))+'">'+esc(main.name)+'</span>';
 }
 function hebDayLine(d){
   const a=[];
   if(PREFS.hdate)a.push('<span class="hfull">'+hebFull(d)+'</span>');
-  if(PREFS.hol){const l=holidaysOn(d);if(l.length)a.push('<span class="hholn'+(l.some(x=>x.chag)?' c':'')+'">'+esc(l.map(x=>x.name).join(' · '))+'</span>')}
+  if(PREFS.hol){const l=holidaysOn(d);if(l.length)a.push('<span class="hholn'+(l.some(x=>x.chag)?' c':'')+(l.every(x=>x.rc)?' rc':'')+'">'+esc(l.map(x=>x.name).join(' · '))+'</span>')}
   return a.length?'<div class="hline">'+a.join(' · ')+'</div>':'';
 }
 /* ===== מסך הגדרות, התנתקות וחידושים (גרסה 0.5) ===== */
