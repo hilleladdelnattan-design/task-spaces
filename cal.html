@@ -329,7 +329,7 @@ body.offline .wrap{padding-top:calc(34px + env(safe-area-inset-top))}
 .srow .sv{font-weight:600;word-break:break-all}
 .sgrp .seg button{flex:1;min-width:90px}
 .sgrp .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
-.dbtn.wide{width:100%}
+.dbtn.wide,.gbtn.wide{width:100%}
 .nver{margin:10px 0 4px;font-size:14px}
 .nitem{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .nitem .nic{font-size:20px;flex:none;width:28px;text-align:center}
@@ -344,11 +344,21 @@ body.offline .wrap{padding-top:calc(34px + env(safe-area-inset-top))}
 .nbtn{flex:none;height:40px;padding:0 16px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-weight:700}
 @keyframes newsin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.newscard{animation:none}}
+/* ===== גרסה 0.6 ===== */
+#undo{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:92;align-items:center;gap:14px;background:var(--ink);color:var(--bg);padding:6px 6px 6px 16px;border-radius:14px;box-shadow:var(--shadow);max-width:92vw;font-size:14.5px;pointer-events:none}
+:root[dir=rtl] #undo{padding:6px 16px 6px 6px}
+#undo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#undo button{pointer-events:auto;flex:none;height:40px;padding:0 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:700}
+.withmv ~ #undo,body:has(.mvbar) #undo{bottom:calc(120px + env(safe-area-inset-bottom))}
+#updRoot{position:fixed;top:calc(8px + env(safe-area-inset-top));left:0;right:0;z-index:93;display:flex;justify-content:center;pointer-events:none;padding:0 12px}
+.updbar{pointer-events:auto;border:none;background:var(--accent);color:#fff;font-weight:700;border-radius:999px;padding:10px 18px;box-shadow:var(--shadow);font-size:14.5px;max-width:100%}
+.errbox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 16px}
+.errbox p{margin:0;color:var(--ink);max-width:320px}
 </style></head><body>
 <div id="net" role="status">אין חיבור · השינויים נשמרים במכשיר וישלחו כשהחיבור יחזור</div>
 <div id="app"><div class="loading">טוען…</div></div>
 <div id="modalRoot"></div><div id="pickRoot"></div><div id="popRoot"></div>
-<div id="newsRoot"></div><div id="toast" role="status"></div>
+<div id="newsRoot"></div><div id="toast" role="status"></div><div id="undo" role="status"></div><div id="updRoot"></div>
 <div class="loginbox" id="login" hidden><div class="lcard"><h1 id="lgT">לוח משימות</h1><p id="lgP">כדי לראות את המשימות שלך, היכנס עם חשבון Google.</p><button class="pbtn" id="loginBtn" type="button">כניסה עם Google</button><p id="loginErr" role="alert"></p></div></div>
 <script src="fb.js"></script>
 <script>
@@ -443,6 +453,15 @@ const EN={
 'המשימות שתוכננו ליעד יישארו ביומן כמשימות רגילות. העדכונים הידניים של היעד יימחקו.':'Tasks planned for this goal stay in the calendar as regular tasks. The goal’s manual updates will be deleted.',
 'היעד נמחק. המשימות שלו נשארו ביומן.':'Goal deleted. Its tasks stay in the calendar.',
 'כל המשימות של היום':'All of the day’s tasks',
+'בטל':'Undo','הפעולה בוטלה':'Undone','המשימה הועברה':'Task moved','המשימות נמחקו':'Tasks deleted','המשימה נמחקה':'Task deleted','היעד נמחק':'Goal deleted','העדכון הוסר':'Update removed',
+'משהו השתבש בהצגת המסך. הנתונים שלך לא נפגעו.':'Something went wrong showing this screen. Your data is safe.','רענון':'Refresh',
+'התראות עדיין לא פעילות':'notifications not active yet',
+'שים לב: כרגע ההתראות לא עובדות ולא תקבל התראה בזמן. התזכורות נשמרות עם המשימה ויתחילו לפעול כשההתראות יתווספו.':'Note: notifications do not work yet, so you will not get an alert. Reminders are saved with the task and will start working once notifications are added.',
+'גיבוי':'Backup','ייצוא כל הנתונים לקובץ':'Export all data to a file','נשמר קובץ עם כל המשימות, המשימות החוזרות, היעדים והעדכונים. מומלץ לשמור אותו מדי פעם במקום בטוח.':'Saves a file with all your tasks, recurring tasks, goals and updates. Keep a copy somewhere safe from time to time.',
+'קובץ הגיבוי נשמר':'Backup file saved','יש גרסה חדשה ({v}). הקש כאן לעדכון':'A new version ({v}) is available. Tap here to update',
+'כפתור "בטל"':'The “Undo” button','אחרי מחיקה או גרירה מופיע למטה כפתור "בטל" לכמה שניות, שמחזיר את המצב כמו שהיה.':'After deleting or dragging, an “Undo” button appears at the bottom for a few seconds and puts everything back as it was.',
+'גיבוי הנתונים':'Backing up your data','בהגדרות ⚙️ ← גיבוי אפשר לשמור קובץ עם כל המשימות והיעדים.':'In Settings ⚙️ → Backup you can save a file with all your tasks and goals.',
+'הודעה על גרסה חדשה':'New version notice','כשיוצאת גרסה חדשה מופיעה למעלה הודעה, ולחיצה עליה מעדכנת את האפליקציה.':'When a new version is out, a notice appears at the top; tap it to update the app.',
 /* חידושים */
 'העברת משימה':'Moving a task','בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.':'In a task’s ⋮ menu on the day screen choose “Move”, then drag or tap a date in the calendar. Only the date changes.',
 'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש סימן ⤢. לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows a ⤢ mark. Tap it to open the cell and see all of its tasks.',
@@ -452,7 +471,7 @@ const EN={
 'עברית ואנגלית':'Hebrew and English','בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.':'In Settings ⚙️ you can switch language. The tasks and goals you wrote are not translated.'
 };
 /* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
-const VERSION='0.5.4';
+const VERSION='0.6';
 /* ===== העדפות (מראה ושפה): נשמרות במכשיר ב-localStorage. מפתח חדש ונפרד, שום נתון קיים לא נוגע ===== */
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
@@ -542,7 +561,7 @@ function remSort(a){
   return [...b,...c];
 }
 const remLabel=r=>r.t==='at'?r.time:(r.m===60?_('שעה¦h'):r.m+(' '+_('דק׳')));
-const remText=a=>{const l=remSort(a);return l.length?'🔔 '+l.map(remLabel).join(' · '):''};
+const remText=a=>{const l=remSort(a);return l.length?'🔔 '+l.map(remLabel).join(' · ')+' ('+_('התראות עדיין לא פעילות')+')':''};
 function reminderTimes(t){
   if(!t.date)return [];
   return remSort(remList(t)).map(r=>{
@@ -560,7 +579,7 @@ const T=id=>S.tasks.find(x=>x.id===id);
 const newId=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function clean(o){const r={};for(const k in o){if(k==='id'||o[k]===undefined)continue;r[k]=o[k]}return r}
 let toastT=0;
-function toast(m){const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>e.style.display='none',3200)}
+function toast(m){if(UNDO_REC){UNDO_REC.msg=m;return}const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>e.style.display='none',3200)}
 
 /* ===== שכבת נתונים: מתאימה לעבודה בלי אינטרנט =====
    כל כתיבה היא "שגר ושכח": הכתיבה נרשמת מיד במטמון המקומי של Firestore ומסונכרנת לשרת כשיש חיבור.
@@ -570,9 +589,38 @@ function bg(fn){
   try{const p=fn();if(p&&p.catch)p.catch(e=>{console.error(e);toast(_('השינוי לא נשמר. נסה שוב.'))})}
   catch(e){console.error(e);toast(_('השינוי לא נשמר. נסה שוב.'))}
 }
-const dbSet=(c,id,o)=>bg(()=>S.db.doc(c+'/'+id).set(clean(o)));
-const dbUpd=(c,id,p)=>bg(()=>S.db.doc(c+'/'+id).update(clean(p)));
-const dbDel=(c,id)=>bg(()=>S.db.doc(c+'/'+id).delete());
+const dbSet=(c,id,o)=>{undoMark(c,id);bg(()=>S.db.doc(c+'/'+id).set(clean(o)))};
+const dbUpd=(c,id,p)=>{undoMark(c,id);bg(()=>S.db.doc(c+'/'+id).update(clean(p)))};
+const dbDel=(c,id)=>{undoMark(c,id);bg(()=>S.db.doc(c+'/'+id).delete())};
+/* ===== ביטול (Undo) אחרי מחיקה וגרירה =====
+   לפני הפעולה מצלמים את הנתונים בזיכרון, בזמן הפעולה רושמים בדיוק אילו מסמכים נכתבו,
+   ובביטול מחזירים רק אותם למצבם הקודם (מסמך שנוצר בפעולה נמחק, מסמך שנמחק או השתנה נכתב מחדש כמו שהיה) */
+const UNDO_COLL={cal_tasks:'tasks',cal_series:'series',cal_goals:'goals',cal_goal_log:'glog'};
+let UNDO_REC=null,UNDO_LAST=null,undoT=0;
+function undoMark(c,id){if(UNDO_REC&&UNDO_COLL[c]&&!UNDO_REC.ids.some(x=>x[0]===c&&x[1]===id))UNDO_REC.ids.push([c,id])}
+function withUndo(label,fn){
+  const snap={};for(const c in UNDO_COLL)snap[c]=new Map((S[UNDO_COLL[c]]||[]).map(d=>[d.id,JSON.parse(JSON.stringify(d))]));
+  const rec={ids:[],snap,label,msg:''},prev=UNDO_REC;UNDO_REC=rec;
+  try{fn()}finally{UNDO_REC=prev}
+  if(rec.ids.length)offerUndo(rec);else if(rec.msg)toast(rec.msg);
+}
+function offerUndo(rec){
+  UNDO_LAST=rec;const e=$('#undo');if(!e)return;
+  const tt=$('#toast');if(tt)tt.style.display='none';
+  e.innerHTML='<span>'+esc(rec.msg||rec.label)+'</span><button type="button" data-act="undo">'+_('בטל')+'</button>';
+  e.style.display='flex';clearTimeout(undoT);undoT=setTimeout(hideUndo,6000);
+}
+function hideUndo(){UNDO_LAST=null;const e=$('#undo');if(e)e.style.display='none'}
+function doUndo(){
+  const rec=UNDO_LAST;hideUndo();if(!rec)return;
+  rec.ids.forEach(([c,id])=>{
+    const b=rec.snap[c].get(id),arr=S[UNDO_COLL[c]],i=arr.findIndex(x=>x.id===id);
+    if(b){const data={...b};delete data.id;dbSet(c,id,data);if(i>=0)arr[i]=b;else arr.push(b)}
+    else{dbDel(c,id);if(i>=0)arr.splice(i,1)}
+  });
+  if(S.view==='goal'&&!gById(S.goalId))backToMonth();else render();
+  toast(_('הפעולה בוטלה'));
+}
 function updTask(id,p){const t=T(id);if(t)Object.assign(t,p);dbUpd('cal_tasks',id,p)}
 function updSeries(id,p){const s=S.series.find(x=>x.id===id);if(s)Object.assign(s,p);dbUpd('cal_series',id,p)}
 
@@ -692,13 +740,17 @@ function renderDay(){
   return ('<div class="wrap"><div class="dtop"><button type="button" class="tlink" data-act="back">📅 '+_('חזרה ללוח')+'</button><button type="button" class="pbtn sm" data-act="add">＋ '+_('הוסף משימה')+'</button></div><div class="dnav"><button type="button" class="arr" data-act="dprev" aria-label="'+_('יום קודם')+'"><span class="ltr">')+(LANG==='en'?'‹':'›')+'</span></button><div class="dtitle"><small>'+DOWN[dowOf(d)]+'</small><h1>'+esc(dayName(d))+(d===today?('<span class="tag">'+_('היום')+'</span>'):'')+('</h1></div><button type="button" class="arr" data-act="dnext" aria-label="'+_('יום הבא')+'"><span class="ltr">')+(LANG==='en'?'›':'‹')+'</span></button></div><div class="dsum">'+summary(list)+'</div><div class="tl" id="tl" style="height:'+yOfMin(1440)+'px"><div id="glines">'+linesHtml()+'</div><div class="lane" id="lane">'+blocks+'</div></div>'+nt+'</div>';
 }
 
+const errBox=m=>'<div class="loading errbox"><p>'+esc(m)+'</p><button type="button" class="pbtn" data-act="reload">'+_('רענון')+'</button><div class="ver">'+_('גרסה')+' '+VERSION+'</div></div>';
 function render(){
   if(S.dragging){S.pending=true;return}
   S.noAutoUntil=performance.now()+700;
   const root=$('#app');
+  if(S.loadErr){root.innerHTML=errBox(_('אין גישה למסד הנתונים. נסה לרענן או להתחבר מחדש.'));return}
   if(!S.loaded.t||!S.loaded.s){root.innerHTML=('<div class="loading">'+_('טוען…')+'</div>');return}
   const y=window.scrollY;
-  root.innerHTML=S.view==='day'?renderDay():S.view==='goal'?renderGoal():S.view==='settings'?renderSettings():renderMonth();
+  /* שגיאה בהצגה: מסך ברור עם כפתור רענון, במקום מסך ריק או תקוע */
+  try{root.innerHTML=S.view==='day'?renderDay():S.view==='goal'?renderGoal():S.view==='settings'?renderSettings():renderMonth()}
+  catch(e){console.error('render',e);root.innerHTML=errBox(_('משהו השתבש בהצגת המסך. הנתונים שלך לא נפגעו.'));return}
   if(S.autoScroll&&S.view==='day'){S.autoScroll=false;scrollToRelevant()}else if(S.autoScroll){S.autoScroll=false;window.scrollTo(0,0)}else window.scrollTo(0,y);
 }
 function scrollToRelevant(){
@@ -764,7 +816,9 @@ function editTask(id,scope,v){
   const title=v.title.trim(),time=v.time||'',endTime=time?(v.end||''):'';
   const reminders=(v.rem||[]).filter(x=>x.t==='at'||time);
   if(scope==='from'&&t.seriesId){
-    const list=S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=t.date&&!x.movedTo);
+    /* "מהיום והלאה" לא משנה ימים שכבר עברו, גם כשהתחלנו ממופע של יום שעבר */
+    const from=t.date<todayIL()?todayIL():t.date;
+    const list=S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=from&&!x.movedTo);
     list.forEach(x=>updTask(x.id,{title,details,time,endTime,reminders}));
     if(S.series.find(x=>x.id===t.seriesId))updSeries(t.seriesId,{title,details,time,endTime,reminders});
   }else{
@@ -774,7 +828,9 @@ function editTask(id,scope,v){
 function deleteTask(id,scope){
   const t=T(id);if(!t)return;
   if(scope==='from'&&t.seriesId){
-    const list=S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=t.date);
+    /* "מהיום והלאה" לא מוחק ימים שכבר עברו, גם כשהתחלנו ממופע של יום שעבר */
+    const from=t.date<todayIL()?todayIL():t.date;
+    const list=S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=from);
     const ids=new Set(list.map(x=>x.id));
     S.tasks=S.tasks.filter(x=>!ids.has(x.id));
     list.forEach(x=>dbDel('cal_tasks',x.id));
@@ -856,7 +912,7 @@ function remHtml(m){
   const ats=list.filter(r=>r.t==='at').sort((x,y)=>x.time<y.time?-1:1);
   if(ats.length)h+='<div class="rchips">'+ats.map(r=>'<span class="chip"><span class="ltr">'+esc(r.time)+'</span><button type="button" data-act="rdel" data-time="'+esc(r.time)+('" aria-label="'+_('הסרת תזכורת')+' ')+esc(r.time)+'">✕</button></span>').join('')+'</div>';
   if(list.length)h+='<div class="note">'+esc(remText(list))+'</div>';
-  h+=('<div class="note">'+_('התזכורות נשמרות עם המשימה. התראה בפועל תתווסף בגרסת האפליקציה (בהמשך).')+'</div>');
+  h+=('<div class="note">'+_('שים לב: כרגע ההתראות לא עובדות ולא תקבל התראה בזמן. התזכורות נשמרות עם המשימה ויתחילו לפעול כשההתראות יתווספו.')+'</div>');
   return h;
 }
 function renderModal(){
@@ -1159,7 +1215,7 @@ function dragEnd(commit){
   const tl0=$('#tl');
   if(commit&&prop&&prop.k==='tl'&&tl0){hh=Math.floor(prop.s/60);y0=tl0.getBoundingClientRect().top+yOfMin(hh*60)}
   if(commit&&prop&&t){
-    applyDrop(t,prop);
+    withUndo(_('המשימה הועברה'),()=>applyDrop(t,prop));
     if(S.moving&&S.moving.id===DR.id&&prop.k==='cell'&&!prop.same&&!prop.bad&&!DR.chip)S.moving=null;
   }
   DR.chip=null;DR.imm=false;
@@ -1220,6 +1276,8 @@ document.addEventListener('click',e=>{
     return;
   }
   if(goalClick(a,el,id,e))return;
+  if(a==='undo'){doUndo();return}
+  if(a==='reload'){location.reload();return}
   if(a==='settings'){openSettings();return}
   if(settingsClick(a,el,id,e))return;
   if(a==='more'){const d=el.dataset.d;S.expand=S.expand===d?'':d;render();return}
@@ -1254,20 +1312,20 @@ document.addEventListener('click',e=>{
     const t=T(id);if(!t)return;
     openDatePicker(todayIL(),todayIL(),nd=>{
       if(nd===t.date){toast(_('זה היום של המשימה.'));return}
-      moveTask(id,nd);render();toast(_('הועבר ל־')+dm(nd));
+      withUndo(_('המשימה הועברה'),()=>{moveTask(id,nd);toast(_('הועבר ל־')+dm(nd))});render();
     });return}
   if(a==='signout'){S.signOut&&S.signOut();return}
   const m=S.modal;if(!m)return;
   if(a==='scope-one'||a==='scope-from'){
     const scope=a==='scope-one'?'one':'from',t=T(m.id);if(!t)return;
     if(m.op==='edit')editFormOf(t,scope);
-    else{closeModal();deleteTask(t.id,scope);render()}
+    else{closeModal();withUndo(scope==='from'?_('המשימות נמחקו'):_('המשימה נמחקה'),()=>deleteTask(t.id,scope));render()}
     return}
   if(a==='view-edit'){const t=T(m.id);if(!t)return;if(t.seriesId)modal({type:'scope',id:t.id,op:'edit'});else editFormOf(t,'one');return}
   if(a==='cont-yes'){const sr=S.series.find(x=>x.id===m.sid);closeModal();if(sr)continueSeries(sr);render();checkSeries();return}
   if(a==='cont-no'){const sr=S.series.find(x=>x.id===m.sid);closeModal();if(sr)updSeries(sr.id,{ended:true});render();checkSeries();return}
   if(a==='cont-later'){S.dismissed.add(m.sid);closeModal();checkSeries();return}
-  if(a==='del-yes'){const i=m.id;closeModal();deleteTask(i,'one');render();return}
+  if(a==='del-yes'){const i=m.id;closeModal();withUndo(_('המשימה נמחקה'),()=>deleteTask(i,'one'));render();return}
   /* הוספה מהירה */
   if(a==='q-time'){collectForm();openTimePicker(m.vals.time,v=>{m.vals.time=v;rerenderForm()});return}
   if(a==='q-clr'){collectForm();m.vals.time='';rerenderForm();return}
@@ -1345,7 +1403,7 @@ function moveCommit(d){
   if(!t){S.moving=null;render();return}
   if(d<todayIL()){toast(_('אי אפשר להעביר משימה ליום שעבר.'));return}
   if(d===t.date){toast(_('זה היום של המשימה.'));return}
-  applyDrop(t,{k:'cell',d});S.moving=null;render();
+  withUndo(_('המשימה הועברה'),()=>applyDrop(t,{k:'cell',d}));S.moving=null;render();
 }
 function tick(){const t=todayIL();if(t!==S.lastToday){S.lastToday=t;render()}checkSeries()}
 setInterval(tick,30000);
@@ -1602,7 +1660,7 @@ function goalModalHtml(m){
     const edit=!!m.id;
     let b=('<form id="g_form" novalidate><input type="text" class="big" id="g_title" placeholder="'+_('שם היעד (למשל: אימונים)')+'" value="')+esc(v.title)+('" maxlength="80" autocomplete="off" aria-label="'+_('שם היעד')+'"><textarea class="dta" id="g_desc" rows="2" maxlength="500" placeholder="'+_('תיאור (לא חובה)')+'" aria-label="'+_('תיאור')+'">')+esc(v.desc||'')+'</textarea>';
     if(!edit)b+=('<div class="frow col"><span class="fl">'+_('תקופה')+'</span><div class="seg" role="group" aria-label="'+_('תקופה')+'"><button type="button" data-act="g-per" data-k="week" aria-pressed="')+(v.period==='week')+('">'+_('שבועי')+'</button><button type="button" data-act="g-per" data-k="month" aria-pressed="')+(v.period==='month')+('">'+_('חודשי')+'</button></div></div>');
-    else b+=('<p class="note">'+_('יעד')+' ')+perName(v.period)+('. '+_('סוג התקופה לא משתנה אחרי היצירה.')+'</p>');
+    else b+='<p class="note">'+_('יעד {p}',{p:perName(v.period)})+('. '+_('סוג התקופה לא משתנה אחרי היצירה.')+'</p>');
     b+=('<div class="frow"><span class="fl">🎯 '+_('כמות')+' ')+perUnit(v.period)+('</span><div class="stepper"><button type="button" class="gbtn" data-act="g-tm" aria-label="'+_('פחות')+'">−</button><input type="text" id="g_target" inputmode="numeric" value="')+esc(String(v.target))+('" aria-label="'+_('כמות')+'" autocomplete="off"><button type="button" class="gbtn" data-act="g-tp" aria-label="'+_('יותר')+'">＋</button></div></div>');
     if(edit)b+=('<p class="note">'+_('שינוי הכמות חל מהתקופה הנוכחית והלאה. תקופות קודמות לא משתנות.')+'</p>');
     b+=('<div class="frow col"><span class="fl">'+_('פירוט לסוגים (לא חובה)')+'</span>');
@@ -1704,7 +1762,7 @@ function goalClick(a,el,id,e){
   if(a==='g-tog'){if(S.gOpen.has(id))S.gOpen.delete(id);else S.gOpen.add(id);render();return true}
   if(a==='sec-tog'){const k=el.dataset.k;S.dayUI[k]=!S.dayUI[k];S.dayUI.manual=true;applyDayUI();return true}
   if(a==='g-del'){closePop();if(gById(id))modal({type:'gkill',id});return true}
-  if(a==='g-del-yes'){const gid=m&&m.id;closeModal();if(gid)deleteGoal(gid);return true}
+  if(a==='g-del-yes'){const gid=m&&m.id;closeModal();if(gid)withUndo(_('היעד נמחק'),()=>deleteGoal(gid));return true}
   if(a==='g-day'){openDay(el.dataset.d);return true}
   if(a==='g-plan'){
     const gid=el.dataset.gid,sub=el.dataset.sub||'';
@@ -1725,11 +1783,11 @@ function goalClick(a,el,id,e){
     const ps=pStart(g.period,today),pe=pEnd(g.period,ps);
     const l=S.glog.filter(x=>x.goalId===id&&x.date>=ps&&x.date<=pe).sort((x,y)=>(y.createdAt||0)-(x.createdAt||0))[0];
     if(!l){toast(_('אין עדכון ידני להסרה בתקופה הזו. פעילות מהיומן מבטלים בסימון המשימה ביומן.'));return true}
-    delGoalLog(l.id);render();toast(_('העדכון האחרון הוסר'));return true;
+    withUndo(_('העדכון האחרון הוסר'),()=>{delGoalLog(l.id);toast(_('העדכון האחרון הוסר'))});render();return true;
   }
   if(a==='g-addlog'){modal({type:'glog',gid:id,vals:{date:today,sub:'',note:''}});return true}
   if(a==='g-dellog'){modal({type:'gdel',id});return true}
-  if(a==='g-dellog-yes'){const i=m&&m.id;closeModal();if(i)delGoalLog(i);render();return true}
+  if(a==='g-dellog-yes'){const i=m&&m.id;closeModal();if(i)withUndo(_('העדכון הוסר'),()=>delGoalLog(i));render();return true}
   /* חלון יעד */
   if(!m)return false;
   if(a==='g-per'){collectGoalForm();m.vals.period=el.dataset.k;rerenderGoalForm();return true}
@@ -1752,7 +1810,10 @@ const NEWS=[
   {id:'daysec',series:'0.5',ic:'🧩',t:'מסך יום מסודר יותר',x:'"משימות כלליות" ו"יעדים" מתקפלים ונפתחים מהכותרת שלהם, ונפתחים לבד כשמגיעים לסוף הציר.'},
   {id:'goalrow',series:'0.5',ic:'🎯',t:'יעדים קומפקטיים',x:'כל יעד מוצג בשורה אחת. לחיצה פותחת פרטים, ובתפריט ⋮ אפשר לערוך או למחוק.'},
   {id:'theme',series:'0.5',ic:'🌙',t:'מצב בהיר וכהה',x:'בהגדרות ⚙️ אפשר לבחור בהיר, כהה או אוטומטי לפי המכשיר.'},
-  {id:'lang',series:'0.5',ic:'🌐',t:'עברית ואנגלית',x:'בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.'}
+  {id:'lang',series:'0.5',ic:'🌐',t:'עברית ואנגלית',x:'בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.'},
+  {id:'undo',series:'0.6',ic:'↩️',t:'כפתור "בטל"',x:'אחרי מחיקה או גרירה מופיע למטה כפתור "בטל" לכמה שניות, שמחזיר את המצב כמו שהיה.'},
+  {id:'backup',series:'0.6',ic:'💾',t:'גיבוי הנתונים',x:'בהגדרות ⚙️ ← גיבוי אפשר לשמור קובץ עם כל המשימות והיעדים.'},
+  {id:'update',series:'0.6',ic:'🔄',t:'הודעה על גרסה חדשה',x:'כשיוצאת גרסה חדשה מופיעה למעלה הודעה, ולחיצה עליה מעדכנת את האפליקציה.'}
 ];
 const NEWS_SERIES=NEWS[NEWS.length-1].series;
 function newsLoad(){let n={};try{n=JSON.parse(lsGet('cal.news')||'{}')||{}}catch(e){n={}}if(!n.ack||typeof n.ack!=='object')n.ack={};return n}
@@ -1783,6 +1844,8 @@ function settingsClick(a,el,id,e){
   if(a==='set-theme'){setPrefs({theme:el.dataset.v});render();return true}
   if(a==='set-lang'){setPrefs({lang:el.dataset.v});render();renderNews();if(S.modal)renderModal();return true}
   if(a==='logout'){modal({type:'logout'});return true}
+  if(a==='export'){exportData();return true}
+  if(a==='upd-go'){location.reload();return true}
   if(a==='logout-yes'){closeModal();if(S.signOut)S.signOut();return true}
   return false;
 }
@@ -1798,10 +1861,42 @@ function renderSettings(){
    +'<section class="sgrp" aria-labelledby="sg1"><h2 id="sg1">'+_('חשבון')+'</h2>'+acc+'</section>'
    +'<section class="sgrp" aria-labelledby="sg2"><h2 id="sg2">'+_('מראה')+'</h2>'+seg('set-theme',PREFS.theme,[['light','☀️ '+_('בהיר')],['dark','🌙 '+_('כהה')],['auto','🖥️ '+_('אוטומטי')]])+'</section>'
    +'<section class="sgrp" aria-labelledby="sg3"><h2 id="sg3">'+_('שפה')+'</h2>'+seg('set-lang',PREFS.lang,[['he','עברית 🇮🇱'],['en','English 🇬🇧']])+'</section>'
+   +'<section class="sgrp" aria-labelledby="sg6"><h2 id="sg6">'+_('גיבוי')+'</h2><button type="button" class="gbtn wide" data-act="export">💾 '+_('ייצוא כל הנתונים לקובץ')+'</button><div class="note">'+_('נשמר קובץ עם כל המשימות, המשימות החוזרות, היעדים והעדכונים. מומלץ לשמור אותו מדי פעם במקום בטוח.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg4"><h2 id="sg4">'+_('התנתקות')+'</h2><button type="button" class="dbtn wide" data-act="logout">'+_('התנתק')+'</button><div class="note">'+_('ההתנתקות לא מוחקת משימות, יעדים או היסטוריה.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg5"><h2 id="sg5">'+_('מה חדש?')+'</h2>'+news+'</section>'
    +'<div class="foot"><div class="ver">'+_('גרסה')+' '+VERSION+'</div></div></div>';
 }
+
+/* ===== גיבוי: קובץ JSON עם כל הנתונים (קריאה בלבד, לא משנה כלום) ===== */
+async function exportData(){
+  const data={app:'task-spaces-cal',schema:1,version:VERSION,exportedAt:new Date().toISOString(),account:(S.user&&S.user.email)||'',
+    tasks:S.tasks,series:S.series,goals:S.goals,goalLog:S.glog};
+  const name='task-backup-'+todayIL()+'.json';
+  const file=new File([JSON.stringify(data,null,1)],name,{type:'application/json'});
+  /* בטלפון: חלון השיתוף של המכשיר (שמירה ל"קבצים"), כי הורדה רגילה לא אמינה באפליקציה מותקנת באייפון */
+  if(navigator.maxTouchPoints>1&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:name});return}catch(e){if(e&&e.name==='AbortError')return}
+  }
+  const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000);
+  toast(_('קובץ הגיבוי נשמר')+': '+name);
+}
+/* ===== גרסה חדשה: בודקים בשקט מדי פעם אם באתר יש גרסה אחרת, ומציעים לעדכן בלחיצה ===== */
+let verLast=-1e9,verShown='';
+async function checkVersion(){
+  if(!navigator.onLine||performance.now()-verLast<5*60*1000)return;verLast=performance.now();
+  try{
+    const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const m=(await r.text()).match(/const VERSION='([^']+)'/);
+    if(m&&m[1]!==VERSION&&m[1]!==verShown){verShown=m[1];showUpdate(m[1])}
+  }catch(e){}
+}
+function showUpdate(v){
+  const root=$('#updRoot');if(!root)return;
+  root.innerHTML='<button type="button" class="updbar" data-act="upd-go">🔄 '+esc(_('יש גרסה חדשה ({v}). הקש כאן לעדכון',{v}))+'</button>';
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()});
+setTimeout(checkVersion,15000);
 /* ===== חיבור ל-Firebase (אותו פרויקט, אוספים: cal_tasks, cal_series) ===== */
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyBHFzVCyBt05MZ0RdXPNIEJLtd_5b6P9OA",
@@ -1850,7 +1945,7 @@ function boot(){
 }
 function start(db){
   S.db=db;
-  const bad=()=>{$('#app').innerHTML=('<div class="loading">'+_('אין גישה למסד הנתונים. נסה לרענן או להתחבר מחדש.')+'</div>')};
+  const bad=e=>{console.error('db',e);S.loadErr=true;render()};
   db.collection('cal_series').onSnapshot(sn=>{S.series=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.s=true;render();checkSeries()},bad);
   /* יעדים: ההאזנה לא חוסמת את שאר האפליקציה, ושגיאה בה לא דורסת את המסך */
   db.collection('cal_goals').onSnapshot(sn=>{S.goals=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.g=true;render()},e=>{console.error('goals',e);S.loaded.g=true;render()});
