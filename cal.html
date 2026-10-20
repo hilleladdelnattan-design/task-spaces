@@ -330,6 +330,7 @@ body.offline .wrap{padding-top:calc(34px + env(safe-area-inset-top))}
 .sgrp .seg button{flex:1;min-width:90px}
 .sgrp .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .dbtn.wide,.gbtn.wide{width:100%}
+.sgrp .gbtn.wide+.gbtn.wide{margin-top:8px}
 .nver{margin:10px 0 4px;font-size:14px}
 .nitem{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .nitem .nic{font-size:20px;flex:none;width:28px;text-align:center}
@@ -541,6 +542,19 @@ const EN={
 'בוצע ב־{d}':'done on {d}','מתוכנן ל־{d}':'planned for {d}','פתח את היום של המשימה':'Open the task’s day','תתי־משימות':'Subtasks','תת־משימה':'Subtask','תת־משימה חדשה':'New subtask',
 'תפוגה':'Expiry','ללא תפוגה':'No expiry','אחרי שבוע':'After a week','אחרי חודש':'After a month','אם המשימה עדיין בין המשימות הכלליות ולא הושלמה עד אז, היא תסומן כנכשלה. שיבוץ ליום מבטל את התפוגה.':'If the task is still in General tasks and not completed by then, it is marked as failed. Placing it on a day cancels the expiry.',
 'הסימון בוטל':'Unmarked','המשימה סומנה כבוצעה':'Task marked done','אי אפשר לבחור יום עתידי.':'You cannot pick a future day.','גרור את המשימה ליום שבו היא בוצעה (או הקש על היום):':'Drag the task to the day it was done (or tap the day):',
+'התראות':'Notifications','הפעל התראות במכשיר הזה':'Turn on notifications on this device','כבה התראות במכשיר הזה':'Turn off notifications on this device','שלח התראת בדיקה':'Send a test notification',
+'ההתראות פעילות במכשיר הזה.':'Notifications are on for this device.','ההתראות כבויות במכשיר הזה.':'Notifications are off on this device.','בודק…':'Checking…',
+'המכשיר או הדפדפן הזה לא תומכים בהתראות.':'This device or browser does not support notifications.',
+'באייפון התראות עובדות רק כשהאפליקציה מותקנת במסך הבית: בספארי ← שיתוף ← "הוסף למסך הבית", ואז לפתוח אותה משם.':'On iPhone, notifications work only when the app is installed on the Home Screen: in Safari → Share → “Add to Home Screen”, then open it from there.',
+'ההתראות חסומות בהגדרות של הדפדפן או של המכשיר. צריך לאפשר אותן שם ואז לנסות שוב.':'Notifications are blocked in the browser or device settings. Allow them there, then try again.',
+'במחשב, התראות מגיעות רק כשהדפדפן פועל (גם ברקע).':'On a computer, notifications arrive only while the browser is running (even in the background).',
+'כרגע אפשר לשלוח רק התראת בדיקה. תזכורות למשימות יתחילו לפעול בשלב הבא.':'For now only a test notification can be sent. Task reminders will start working in a later step.',
+'ההתראות הופעלו במכשיר הזה':'Notifications turned on for this device','ההתראות כובו במכשיר הזה':'Notifications turned off for this device',
+'לא ניתן להפעיל התראות. נסה שוב.':'Could not turn on notifications. Try again.','לא ניתן לכבות התראות. נסה שוב.':'Could not turn off notifications. Try again.','ההרשאה להתראות לא ניתנה.':'Notification permission was not granted.',
+'התראת הבדיקה נשלחה למכשיר אחד':'Test notification sent to 1 device','התראת הבדיקה נשלחה ל־{n} מכשירים':'Test notification sent to {n} devices',
+'אין מכשירים רשומים להתראות. הפעל קודם התראות במכשיר.':'No devices are registered for notifications. Turn them on for a device first.',
+'אפשר לשלוח התראת בדיקה פעם בדקה.':'You can send a test notification once a minute.','שרת ההתראות עדיין לא מוגדר.':'The notification server is not set up yet.',
+'שליחת התראת הבדיקה נכשלה. נסה שוב.':'Sending the test notification failed. Try again.','צריך חיבור לאינטרנט.':'An internet connection is needed.',
 /* חידושים */
 'העברת משימה':'Moving a task','בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.':'In a task’s ⋮ menu on the day screen choose “Move”, then drag or tap a date in the calendar. Only the date changes.',
 'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש סימן ⤢. לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows a ⤢ mark. Tap it to open the cell and see all of its tasks.',
@@ -2318,6 +2332,9 @@ function settingsClick(a,el,id,e){
   if(a==='set-tgl'){const k=el.dataset.k;setPrefs({[k]:!PREFS[k]});render();return true}
   if(a==='upd-go'){location.reload();return true}
   if(a==='logout-yes'){closeModal();if(S.signOut)S.signOut();return true}
+  if(a==='push-on'){pushOn();return true}
+  if(a==='push-off'){pushOff();return true}
+  if(a==='push-test'){pushTest();return true}
   return false;
 }
 function renderSettings(){
@@ -2333,6 +2350,7 @@ function renderSettings(){
    +'<section class="sgrp" aria-labelledby="sg2"><h2 id="sg2">'+_('מראה')+'</h2>'+seg('set-theme',PREFS.theme,[['light','☀️ '+_('בהיר')],['dark','🌙 '+_('כהה')],['auto','🖥️ '+_('אוטומטי')]])+'</section>'
    +'<section class="sgrp" aria-labelledby="sg3"><h2 id="sg3">'+_('שפה')+'</h2>'+seg('set-lang',PREFS.lang,[['he','עברית 🇮🇱'],['en','English 🇬🇧']])+'</section>'
    +'<section class="sgrp" aria-labelledby="sg7"><h2 id="sg7">'+_('לוח עברי')+'</h2>'+[['hol',_('חגים ומועדים')],['hdate',_('תאריך עברי בכל יום')],['hmonth',_('חודש עברי בכותרת')]].map(([k,l])=>'<button type="button" class="tgl" role="switch" aria-checked="'+!!PREFS[k]+'" data-act="set-tgl" data-k="'+k+'"><span>'+l+'</span><i aria-hidden="true"></i></button>').join('')+'</section>'
+   +'<section class="sgrp" aria-labelledby="sg8"><h2 id="sg8">🔔 '+_('התראות')+'</h2>'+pushSettingsHtml()+'</section>'
    +'<section class="sgrp" aria-labelledby="sg6"><h2 id="sg6">'+_('גיבוי')+'</h2><button type="button" class="gbtn wide" data-act="export">💾 '+_('ייצוא כל הנתונים לקובץ')+'</button><div class="note">'+_('נשמר קובץ עם כל המשימות, המשימות החוזרות, היעדים והעדכונים. מומלץ לשמור אותו מדי פעם במקום בטוח.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg4"><h2 id="sg4">'+_('התנתקות')+'</h2><button type="button" class="dbtn wide" data-act="logout">'+_('התנתק')+'</button><div class="note">'+_('ההתנתקות לא מוחקת משימות, יעדים או היסטוריה.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg5"><h2 id="sg5">'+_('מה חדש?')+'</h2>'+news+'</section>'
@@ -2352,6 +2370,97 @@ async function exportData(){
   const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000);
   toast(_('קובץ הגיבוי נשמר')+': '+name);
+}
+/* ===== התראות (Web Push): הרשמת המכשיר הנוכחי והתראת בדיקה =====
+   המפתח הציבורי מגיע מהשרת (/api/push-config). ההרשמה נשמרת ב-users/{uid}/push_subs/{deviceId}, תחת החשבון המחובר בלבד.
+   במכשיר נשמר רק המזהה של ההרשמה ושל המשתמש (cal.push). אין כאן תזמון: תזכורות למשימות יגיעו בשלב מאוחר יותר */
+S.push={state:'unknown',busy:false,checking:false};
+const isIOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+const isMobile=()=>isIOS()||/Android/i.test(navigator.userAgent);
+const pushSupported=()=>window.isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+function pushLocal(){try{return JSON.parse(lsGet('cal.push')||'{}')||{}}catch(e){return {}}}
+function deviceLabel(){
+  const u=navigator.userAgent;
+  const os=/iPhone/.test(u)?'iPhone':/iPad/.test(u)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)?'iPad':/Android/i.test(u)?'Android':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':'';
+  const br=/Edg\//.test(u)?'Edge':/SamsungBrowser/.test(u)?'Samsung Internet':/Firefox\//.test(u)?'Firefox':/Chrome\//.test(u)?'Chrome':/Safari\//.test(u)?'Safari':'';
+  return [os,br].filter(Boolean).join(' · ')||'?';
+}
+async function pushDeviceId(endpoint){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(endpoint));return 'd'+Array.from(new Uint8Array(h)).slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('')}
+function b64uBytes(s){const b=atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4));return Uint8Array.from(b,c=>c.charCodeAt(0))}
+function sameServerKey(sub,key){const k=sub.options&&sub.options.applicationServerKey;if(!k)return true;const a=new Uint8Array(k),b=b64uBytes(key);return a.length===b.length&&a.every((x,i)=>x===b[i])}
+async function pushRefresh(){
+  let st;
+  if(isIOS()&&!isStandalone())st='ios-install';
+  else if(!pushSupported())st='unsupported';
+  else if(Notification.permission==='denied')st='denied';
+  else{
+    try{const reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription(),loc=pushLocal();st=sub&&loc.id&&S.user&&loc.uid===S.user.uid?'on':'off'}
+    catch(e){st='off'}
+  }
+  if(S.push.state!==st){S.push.state=st;if(S.view==='settings')render()}
+}
+function pushSettingsHtml(){
+  const st=S.push.state,dis=S.push.busy?' disabled':'';
+  if(st==='unknown'&&!S.push.checking){S.push.checking=true;setTimeout(()=>pushRefresh().finally(()=>{S.push.checking=false}),0)}
+  const msg={on:'ההתראות פעילות במכשיר הזה.',off:'ההתראות כבויות במכשיר הזה.',unsupported:'המכשיר או הדפדפן הזה לא תומכים בהתראות.','ios-install':'באייפון התראות עובדות רק כשהאפליקציה מותקנת במסך הבית: בספארי ← שיתוף ← "הוסף למסך הבית", ואז לפתוח אותה משם.',denied:'ההתראות חסומות בהגדרות של הדפדפן או של המכשיר. צריך לאפשר אותן שם ואז לנסות שוב.'}[st]||'בודק…';
+  let h='<div class="note">'+_(msg)+'</div>';
+  if(st==='off')h+='<button type="button" class="gbtn wide" data-act="push-on"'+dis+'>'+_('הפעל התראות במכשיר הזה')+'</button>';
+  if(st==='on')h+='<button type="button" class="gbtn wide" data-act="push-test"'+dis+'>'+_('שלח התראת בדיקה')+'</button><button type="button" class="gbtn wide" data-act="push-off"'+dis+'>'+_('כבה התראות במכשיר הזה')+'</button>';
+  if((st==='on'||st==='off')&&!isMobile())h+='<div class="note">'+_('במחשב, התראות מגיעות רק כשהדפדפן פועל (גם ברקע).')+'</div>';
+  if(st==='on'||st==='off')h+='<div class="note">'+_('כרגע אפשר לשלוח רק התראת בדיקה. תזכורות למשימות יתחילו לפעול בשלב הבא.')+'</div>';
+  return h;
+}
+/* הפעלה: בקשת ההרשאה חייבת להיות הדבר הראשון אחרי הלחיצה (דרישה של אייפון), ורק אחר כך פניות לרשת */
+async function pushOn(){
+  if(S.push.busy||!S.user)return;
+  S.push.busy=true;
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast(_('ההרשאה להתראות לא ניתנה.'));return}
+    const r=await fetch('/api/push-config',{cache:'no-store'});if(!r.ok)throw new Error('push-config '+r.status);
+    const key=(await r.json()).publicKey;if(!key)throw new Error('no public key');
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(sub&&!sameServerKey(sub,key)){await sub.unsubscribe();sub=null}
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uBytes(key)});
+    const j=sub.toJSON(),id=await pushDeviceId(j.endpoint),old=pushLocal();
+    if(old.id&&old.id!==id&&old.uid===S.user.uid)dbDel('push_subs',old.id);
+    dbSet('push_subs',id,{endpoint:j.endpoint,keys:{p256dh:j.keys.p256dh,auth:j.keys.auth},label:deviceLabel(),lang:LANG,enabled:true,createdAt:Date.now()});
+    lsSet('cal.push',JSON.stringify({id,uid:S.user.uid}));
+    S.push.state='on';toast(_('ההתראות הופעלו במכשיר הזה'));
+  }catch(e){console.error('push on',e);toast(_('לא ניתן להפעיל התראות. נסה שוב.'))}
+  finally{S.push.busy=false;render();pushRefresh()}
+}
+async function pushOff(){
+  if(S.push.busy)return;
+  S.push.busy=true;render();
+  try{
+    const reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription();
+    if(sub)await sub.unsubscribe();
+    const loc=pushLocal();if(loc.id&&S.user&&loc.uid===S.user.uid)dbDel('push_subs',loc.id);
+    lsSet('cal.push','{}');
+    S.push.state='off';toast(_('ההתראות כובו במכשיר הזה'));
+  }catch(e){console.error('push off',e);toast(_('לא ניתן לכבות התראות. נסה שוב.'))}
+  finally{S.push.busy=false;render();pushRefresh()}
+}
+/* התראת בדיקה: נשלחת רק בלחיצה, רק למכשירים של המשתמש המחובר (השרת מאמת את הטוקן) */
+async function pushTest(){
+  if(S.push.busy||!S.idToken)return;
+  if(navigator.onLine===false){toast(_('צריך חיבור לאינטרנט.'));return}
+  S.push.busy=true;render();
+  try{
+    const tok=await S.idToken();
+    const r=await fetch('/api/push-test',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+tok},body:JSON.stringify({lang:LANG})});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===429)toast(_('אפשר לשלוח התראת בדיקה פעם בדקה.'));
+    else if(r.status===503)toast(_('שרת ההתראות עדיין לא מוגדר.'));
+    else if(!r.ok)toast(_('שליחת התראת הבדיקה נכשלה. נסה שוב.'));
+    else if(!j.devices)toast(_('אין מכשירים רשומים להתראות. הפעל קודם התראות במכשיר.'));
+    else if(!j.sent)toast(_('שליחת התראת הבדיקה נכשלה. נסה שוב.'));
+    else toast(j.sent===1?_('התראת הבדיקה נשלחה למכשיר אחד'):_('התראת הבדיקה נשלחה ל־{n} מכשירים',{n:j.sent}));
+  }catch(e){console.error('push test',e);toast(_('שליחת התראת הבדיקה נכשלה. נסה שוב.'))}
+  finally{S.push.busy=false;render()}
 }
 /* ===== גרסה חדשה: בודקים בשקט מדי פעם אם באתר יש גרסה אחרת, ומציעים לעדכן בלחיצה ===== */
 let verLast=-1e9,verShown='';
@@ -2406,8 +2515,10 @@ function boot(){
     }
   });
   S.signOut=async()=>{try{await FB.signOut(auth)}catch(e){}location.reload()};
+  /* טוקן זהות של המשתמש המחובר, לפניות לשרת ההתראות (השרת מאמת אותו) */
+  S.idToken=()=>auth.currentUser?auth.currentUser.getIdToken():Promise.reject(new Error('not signed in'));
   FB.onAuthStateChanged(auth,user=>{
-    S.user=user?{email:user.email||'',name:user.displayName||''}:null;
+    S.user=user?{email:user.email||'',name:user.displayName||'',uid:user.uid}:null;
     if(S.view==='settings')render();
     if(!user){showLogin();return}
     $('#login').hidden=true;

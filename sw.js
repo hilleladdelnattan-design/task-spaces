@@ -43,6 +43,32 @@ async function handle(e,key){
     return r&&r.ok?r:cached;
   }catch(_){return cached}
 }
+/* ===== התראות (Web Push): כל הודעה שמגיעה מוצגת כהתראה (חובה באייפון), והקשה עליה פותחת את האפליקציה =====
+   מנגנון המטמון למעלה לא משתנה */
+self.addEventListener('push',e=>{
+  let d={};
+  try{d=e.data?e.data.json():{}}catch(_){d={}}
+  const opt={body:d.body||'',icon:'/icon-192.png',data:{url:d.url||'/cal.html'}};
+  if(d.tag)opt.tag=d.tag;
+  e.waitUntil(self.registration.showNotification(d.title||'לוח משימות',opt));
+});
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  let url;
+  try{url=new URL((e.notification.data&&e.notification.data.url)||'/cal.html',self.location.origin)}catch(_){url=null}
+  /* רק כתובות של האפליקציה עצמה */
+  const target=url&&url.origin===self.location.origin?url.href:self.location.origin+'/cal.html';
+  e.waitUntil((async()=>{
+    const all=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const c of all){
+      if(c.url.startsWith(self.location.origin)&&'focus' in c){
+        try{if(c.url!==target&&'navigate' in c)await c.navigate(target)}catch(_){}
+        return c.focus();
+      }
+    }
+    return self.clients.openWindow(target);
+  })());
+});
 self.addEventListener('fetch',e=>{
   const req=e.request;
   if(req.method!=='GET')return;

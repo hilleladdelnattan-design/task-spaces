@@ -1,7 +1,8 @@
 /* גישה ל-Google בלי ספריות כבדות (כדי לחסוך CPU):
    1. אימות Firebase ID Token של משתמש מחובר (חתימה, פרויקט, תוקף).
-   2. טוקן גישה ל-Firestore בעזרת ה-Service Account (הרשאת Firestore בלבד).
-   3. קריאה ומחיקה של מסמכים ב-Firestore דרך REST. */
+   2. טוקן גישה ל-Firestore בעזרת Service Account (שמור לשלב התזמון; עדיין לא בשימוש, וגישת השרת עוד לא הוחלטה).
+   3. קריאה ומחיקה של מסמכים ב-Firestore דרך REST. ה-bearer הוא ה-ID Token של המשתמש עצמו,
+      כך שכללי האבטחה של Firestore חלים והשרת רואה רק את מה שהמשתמש רשאי לראות. */
 const crypto = require('crypto');
 
 const b64u = (b) => Buffer.from(b).toString('base64url');
@@ -91,8 +92,8 @@ function decode(v) {
 }
 
 /* כל המסמכים באוסף (עד 500). אוסף שלא קיים מחזיר רשימה ריקה */
-async function listDocs(sa, projectId, path) {
-  const tok = await accessToken(sa);
+async function listDocs(bearer, projectId, path) {
+  const tok = bearer;
   const out = [];
   let page = '';
   do {
@@ -112,10 +113,10 @@ async function listDocs(sa, projectId, path) {
   return out;
 }
 
-async function deleteDoc(sa, projectId, path) {
-  const tok = await accessToken(sa);
+async function deleteDoc(bearer, projectId, path) {
+  const tok = bearer;
   const r = await fetch(docsBase(projectId) + encPath(path), { method: 'DELETE', headers: { authorization: 'Bearer ' + tok } });
   if (!r.ok && r.status !== 404) throw new Error('firestore delete: HTTP ' + r.status);
 }
 
-module.exports = { verifyIdToken, listDocs, deleteDoc };
+module.exports = { verifyIdToken, listDocs, deleteDoc, accessToken };
