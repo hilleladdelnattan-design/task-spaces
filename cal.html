@@ -554,7 +554,7 @@ const EN={
 'התראת הבדיקה נשלחה למכשיר אחד':'Test notification sent to 1 device','התראת הבדיקה נשלחה ל־{n} מכשירים':'Test notification sent to {n} devices',
 'אין מכשירים רשומים להתראות. הפעל קודם התראות במכשיר.':'No devices are registered for notifications. Turn them on for a device first.',
 'אפשר לשלוח התראת בדיקה פעם בדקה.':'You can send a test notification once a minute.','שרת ההתראות עדיין לא מוגדר.':'The notification server is not set up yet.',
-'שליחת התראת הבדיקה נכשלה. נסה שוב.':'Sending the test notification failed. Try again.','צריך חיבור לאינטרנט.':'An internet connection is needed.',
+'שליחת התראת הבדיקה נכשלה. נסה שוב.':'Sending the test notification failed. Try again.','צריך חיבור לאינטרנט.':'An internet connection is needed.','תזכורות מתוכננות: {n}':'Scheduled reminders: {n}',
 /* חידושים */
 'העברת משימה':'Moving a task','בתפריט ⋮ של משימה במסך היום בחרו "העברה", ואז גררו או הקישו על תאריך בלוח. רק התאריך משתנה.':'In a task’s ⋮ menu on the day screen choose “Move”, then drag or tap a date in the calendar. Only the date changes.',
 'כל המשימות ביום':'All of a day’s tasks','בכל יום שיש בו משימות יש סימן ⤢. לחיצה עליו פותחת את התא ומראה את כל המשימות שלו.':'Every day that has tasks shows a ⤢ mark. Tap it to open the cell and see all of its tasks.',
@@ -1576,7 +1576,7 @@ function moveCommit(d){
   if(d===t.date){toast(_('זה היום של המשימה.'));return}
   withUndo(_('המשימה הועברה'),()=>applyDrop(t,{k:'cell',d}));S.moving=null;render();
 }
-function tick(){const t=todayIL();if(t!==S.lastToday){S.lastToday=t;render()}checkSeries()}
+function tick(){const t=todayIL();if(t!==S.lastToday){S.lastToday=t;render()}checkSeries();pushJobsSchedule()}
 setInterval(tick,30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
 /* מקלדת במכשיר: החלונות מתכווצים לשטח שנשאר מעל המקלדת */
@@ -2409,6 +2409,7 @@ function pushSettingsHtml(){
   if(st==='on')h+='<button type="button" class="gbtn wide" data-act="push-test"'+dis+'>'+_('שלח התראת בדיקה')+'</button><button type="button" class="gbtn wide" data-act="push-off"'+dis+'>'+_('כבה התראות במכשיר הזה')+'</button>';
   if((st==='on'||st==='off')&&!isMobile())h+='<div class="note">'+_('במחשב, התראות מגיעות רק כשהדפדפן פועל (גם ברקע).')+'</div>';
   if(st==='on'||st==='off')h+='<div class="note">'+_('כרגע אפשר לשלוח רק התראת בדיקה. תזכורות למשימות יתחילו לפעול בשלב הבא.')+'</div>';
+  if(S.pushSubs.length&&S.loaded.pj){const n=S.pushJobs.filter(j=>j.at>Date.now()).length;h+='<div class="note">'+_('תזכורות מתוכננות: {n}',{n})+'</div>'}
   return h;
 }
 /* הפעלה: בקשת ההרשאה חייבת להיות הדבר הראשון אחרי הלחיצה (דרישה של אייפון), ורק אחר כך פניות לרשת */
@@ -2462,6 +2463,54 @@ async function pushTest(){
   }catch(e){console.error('push test',e);toast(_('שליחת התראת הבדיקה נכשלה. נסה שוב.'))}
   finally{S.push.busy=false;render()}
 }
+/* ===== תזכורות: רשימת זמני השליחה (push_jobs) =====
+   לכל תזכורת עתידית נשמר מסמך users/{uid}/push_jobs/{taskId}_{at} עם {at (רגע השליחה, ms), date (תאריך המשימה), time (שעת המשימה או '')} בלבד:
+   בלי שם משימה ובלי פרטים. מזהה קבוע = אין כפילויות (גם כששתי תזכורות של אותה משימה נופלות באותו רגע).
+   הרשימה מחושבת מחדש מכל המשימות אחרי כל שינוי, מכל מכשיר, ולכן יצירה, עריכה, העברה, השלמה, מחיקה, שינוי תזכורת ומופעי סדרות מתעדכנים במקום אחד.
+   נשמרת רק כשלמשתמש יש לפחות מכשיר אחד עם התראות; בלי מכשירים הרשימה מתרוקנת. השליחה עצמה בשרת, בשלב מאוחר יותר */
+const PUSH_GRACE=15*60*1000; /* תזכורת שזמנה עבר לפני פחות מ-15 דקות נשארת ברשימה, כדי שהשרת עוד יספיק לשלוח אותה */
+/* ההפרש בין שעון ישראל ל-UTC ברגע מסוים (ms) */
+function tzOffset(ms){const p=_fmt.formatToParts(new Date(ms)),g=t=>+p.find(x=>x.type===t).value;return Date.UTC(g('year'),g('month')-1,g('day'),g('hour')%24,g('minute'))-Math.floor(ms/60000)*60000}
+/* תאריך ושעה בשעון ישראל → רגע מוחלט (ms). שעה שלא קיימת (מעבר לשעון קיץ) → הדקה הקיימת הבאה (03:00); שעה כפולה (מעבר לשעון חורף) → הפעם הראשונה */
+function ilEpoch(date,time){
+  const [y,m,d]=P(date),[h,mi]=time.split(':').map(Number);
+  for(let k=0;k<=180;k++){
+    const W=Date.UTC(y,m-1,d,h,mi+k);
+    const c=[...new Set([tzOffset(W-864e5),tzOffset(W),tzOffset(W+864e5)])].map(o=>W-o).filter(t=>t+tzOffset(t)===W).sort((a,b)=>a-b);
+    if(c.length)return c[0];
+  }
+  return null;
+}
+/* מה צריך להיות ברשימה: משימות עם תאריך, שלא בוצעו, לא הועברו ולא כלליות, ורק תזכורות שזמנן עוד לא עבר (או עבר לפני פחות מ-15 דקות) */
+function pushJobsWanted(tasks,now){
+  const out={};
+  for(const t of tasks){
+    if(t.general||t.done||t.movedTo||!isDate(t.date))continue;
+    for(const r of reminderTimes(t)){
+      const at=ilEpoch(r.date,r.time);
+      if(at===null||at<=now-PUSH_GRACE)continue;
+      out[t.id+'_'+at]={at,date:t.date,time:t.time||''};
+    }
+  }
+  return out;
+}
+/* מה לכתוב: מסמכים חסרים נוצרים, מסמכים שהשתנו מתעדכנים (בלי לגעת בשדות שהשרת יוסיף), ומה שכבר לא צריך נמחק */
+function pushJobsDiff(wanted,existing){
+  const ex=new Map(existing.map(j=>[j.id,j])),set=[],upd=[],del=[];
+  for(const id in wanted){const w=wanted[id],e=ex.get(id);if(!e)set.push([id,w]);else if(e.at!==w.at||e.date!==w.date||e.time!==w.time)upd.push([id,w])}
+  for(const e of existing)if(!Object.prototype.hasOwnProperty.call(wanted,e.id))del.push(e.id);
+  return {set,upd,del};
+}
+let pushSyncT=0;
+function pushJobsSchedule(){clearTimeout(pushSyncT);pushSyncT=setTimeout(pushJobsSync,1200)}
+function pushJobsSync(){
+  if(!S.db||!S.loaded.t||!S.loaded.ps||!S.loaded.pj)return;
+  const d=pushJobsDiff(S.pushSubs.length?pushJobsWanted(S.tasks,Date.now()):{},S.pushJobs);
+  d.set.forEach(([id,w])=>dbSet('push_jobs',id,w));
+  d.upd.forEach(([id,w])=>dbUpd('push_jobs',id,w));
+  d.del.forEach(id=>dbDel('push_jobs',id));
+}
+S.pushSubs=[];S.pushJobs=[];
 /* ===== גרסה חדשה: בודקים בשקט מדי פעם אם באתר יש גרסה אחרת, ומציעים לעדכן בלחיצה ===== */
 let verLast=-1e9,verShown='';
 async function checkVersion(){
@@ -2533,7 +2582,10 @@ function start(db){
   /* יעדים: ההאזנה לא חוסמת את שאר האפליקציה, ושגיאה בה לא דורסת את המסך */
   db.collection('cal_goals').onSnapshot(sn=>{S.goals=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.g=true;render()},e=>{console.error('goals',e);S.loaded.g=true;render()});
   db.collection('cal_goal_log').onSnapshot(sn=>{S.glog=sn.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.error('goal log',e));
-  db.collection('cal_tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();checkSeries();setTimeout(maybeNews,900)},bad);
+  db.collection('cal_tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();checkSeries();setTimeout(maybeNews,900);pushJobsSchedule()},bad);
+  /* התראות: המכשירים הרשומים ורשימת זמני השליחה. שגיאה כאן לא חוסמת את האפליקציה */
+  db.collection('push_subs').onSnapshot(sn=>{S.pushSubs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.ps=true;pushJobsSchedule()},e=>console.error('push subs',e));
+  db.collection('push_jobs').onSnapshot(sn=>{S.pushJobs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.pj=true;if(S.view==='settings')render();pushJobsSchedule()},e=>console.error('push jobs',e));
 }
 boot();
 /* PWA: שומר את קבצי האפליקציה במכשיר כדי שהיא תיפתח גם בלי אינטרנט */
