@@ -1,0 +1,8 @@
+{
+  "name": "task-spaces",
+  "private": true,
+  "description": "לוח משימות: האתר הסטטי (cal.html) ושרת ההתראות בתיקייה api/. אין שלב build: Vercel מגיש את הקבצים הסטטיים כמו שהם.",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}
