@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="he" dir="rtl"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#4a55d0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1723,7 +1723,7 @@ function dayScrollCheck(){
   const vh=innerHeight,max=document.documentElement.scrollHeight-vh,open=!!(u.gen&&u.goals);
   /* השיא נמדד עד תחתית הדף בלבד, כדי שקפיצת הקצה של iOS לא תיחשב גלילה למעלה */
   if(open)u.peak=Math.max(u.peak||0,Math.min(sy,max));
-  if(S.dragging||u.manual||S.modal||S.pick)return;
+  if(S.dragging||BAR_DRAG||u.manual||S.modal||S.pick)return;
   if(performance.now()<(S.noAutoUntil||0))return;
   const tl=$('#tl');if(!tl)return;
   if(!open){
@@ -1747,6 +1747,11 @@ addEventListener('wheel',e=>{if(e.deltaY>0)dayPushDown()},{passive:true});
 let dayTY=null;
 addEventListener('touchstart',e=>{dayTY=e.touches.length===1?e.touches[0].clientY:null},{passive:true});
 addEventListener('touchmove',e=>{if(dayTY===null||e.touches.length!==1)return;if(dayTY-e.touches[0].clientY>12){dayTY=null;dayPushDown()}},{passive:true});
+/* גרירת פס הגלילה בעכבר (הלחיצה מגיעה ל-html עצמו): בזמן הגרירה לא פותחים ולא סוגרים את החלקים, כי שינוי גובה הדף מקפיץ את פס הגלילה מתחת לעכבר.
+   אחרי השחרור בודקים פעם אחת לפי המקום שבו נעצרו */
+let BAR_DRAG=false;
+document.addEventListener('mousedown',e=>{if(e.button===0&&e.target===document.documentElement)BAR_DRAG=true},true);
+addEventListener('mouseup',()=>{if(!BAR_DRAG)return;BAR_DRAG=false;if(S.dayUI)S.dayUI.ly=-1;dayScrollCheck()},true);
 function entriesLine(g,st){
   const items=[...st.doneT.map(t=>({d:t.date,s:t.goalSub})),...st.logs.map(l=>({d:l.date,s:l.subId}))].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
   return items.slice(0,14).map(x=>dm(x.d)+(x.s&&subName(g,x.s)?' '+esc(subName(g,x.s)):'')).join(' · ');
@@ -2163,8 +2168,13 @@ function addSubFromForm(){
   const m=S.modal;collectForm();const t=(m.vals.subin||'').trim();
   if(!t){const i=$('#f_subin');if(i)i.focus();return}
   m.vals.subs.push({id:newId(),t,done:false,on:''});m.vals.subin='';
-  rerenderForm();const i=$('#f_subin');if(i)i.focus();
+  /* מציירים בלי לאסוף שוב (collectForm כבר רץ למעלה): איסוף נוסף היה מחזיר לשדה את הטקסט שכבר נוסף */
+  m.noFocus=true;renderModal();const i=$('#f_subin');if(i)i.focus();
 }
+/* Enter בשדה תת־משימה: עם טקסט מוסיף תת־משימה; בשדה ריק לא עושה כלום (לא שומר ולא סוגר את הטופס) */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target&&e.target.id==='f_subin'&&!e.isComposing){e.preventDefault();addSubFromForm()}
+});
 /* ===== לחיצות ===== */
 function subsClick(a,el,id,e){
   if(a==='tog'){
@@ -2249,6 +2259,15 @@ function doBack(){
   if(S.expand){S.expand='';render();return}
   if(S.view!=='month'){backToMonth();return}
 }
+/* ===== מניעת זום מקרי =====
+   טלפון: צביטה בשתי אצבעות (ב-viewport יש user-scalable=no, אבל Safari באייפון מתעלם ממנו, לכן גם gesture ושתי אצבעות).
+   מחשב: Ctrl/⌘ עם גלגלת או עם + / −. Ctrl+0 לא נחסם, כדי שאפשר יהיה לאפס זום שכבר השתנה. זום מתפריט הדפדפן אי אפשר לחסום */
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>{if(e.cancelable)e.preventDefault()},{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1&&e.cancelable)e.preventDefault()},{passive:false});
+addEventListener('wheel',e=>{if(e.ctrlKey&&e.cancelable)e.preventDefault()},{passive:false});
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&!e.altKey&&(['+','=','-','_'].includes(e.key)||['Equal','Minus','NumpadAdd','NumpadSubtract'].includes(e.code)))e.preventDefault();
+});
 /* ===== מסך הגדרות, התנתקות וחידושים (גרסה 0.5) ===== */
 /* חידושים: רק יכולות אמיתיות שקיימות בגרסה המותקנת. series = מזהה העדכון; כל סדרה חדשה מתחילה מחדש,
    וסדרה שכבר אושרה לא חוזרת. עדכון קטן בלי חידוש לא מוסיף סדרה ולכן לא מציג כלום. */
