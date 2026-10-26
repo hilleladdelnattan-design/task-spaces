@@ -458,7 +458,7 @@ html.locked,html.locked body{overscroll-behavior:none}
 'use strict';
 /* תרגום לאנגלית. המפתח הוא הטקסט בעברית כפי שהוא מופיע בקוד. טקסט שהמשתמש כתב (משימות, פרטים, יעדים, סוגים) לעולם לא עובר תרגום */
 const EN={
-'בזמן המשימה':'At task time','התראות לא הופעלו באף מכשיר':'notifications are not on for any device','כדי לקבל תזכורות כהתראה, הפעל התראות בהגדרות ⚙️ ← התראות.':'To get reminders as notifications, turn on notifications in Settings ⚙️ → Notifications.','תזכורת למשימה חוזרת':'Reminder for a recurring task','הוסף תזכורת':'Add reminder','תזכורת אפשר להוסיף למשימה ששובצה ליום. משימה כללית נשארת כללית; כדי לקבל תזכורת, שבץ אותה ליום ואז הוסף תזכורת.':'Reminders can be added to a task that is scheduled on a day. A general task stays general; to get a reminder, schedule it on a day and then add a reminder.','למשימה בלי שעה אפשר להוסיף תזכורת בשעה מסוימת ביום המשימה.':'For a task without a time you can add a reminder at a specific time on the task’s day.','התזכורת תתווסף ליום הזה ולכל הימים הבאים.':'The reminder will be added to this day and all following days.','סיום':'Done','התזכורת נוספה':'Reminder added','התזכורת הזו כבר קיימת':'This reminder already exists',
+'בזמן המשימה':'At task time','התראות לא הופעלו באף מכשיר':'notifications are not on for any device','כדי לקבל תזכורות כהתראה, הפעל התראות בהגדרות ⚙️ ← התראות.':'To get reminders as notifications, turn on notifications in Settings ⚙️ → Notifications.','הוסף תזכורת':'Add reminder','תזכורת אפשר להוסיף למשימה ששובצה ליום. משימה כללית נשארת כללית; כדי לקבל תזכורת, שבץ אותה ליום ואז הוסף תזכורת.':'Reminders can be added to a task that is scheduled on a day. A general task stays general; to get a reminder, schedule it on a day and then add a reminder.','למשימה בלי שעה אפשר להוסיף תזכורת בשעה מסוימת ביום המשימה.':'For a task without a time you can add a reminder at a specific time on the task’s day.','הקש על תזכורת כדי להוסיף אותה, והקש שוב כדי לבטל אותה.':'Tap a reminder to add it, and tap again to cancel it.','תזכורות פעילות:':'Active reminders:','אין תזכורות פעילות':'No active reminders','כבר יש תזכורת לאותו מועד':'There is already a reminder at that time','התזכורות עודכנו':'Reminders updated','על מה להחיל את השינוי בתזכורות?':'Apply the reminder change to?','רק המופע הזה':'Only this occurrence','המופע הזה והבאים':'This and following occurrences','כל הסדרה':'The whole series','חזור':'Back',
 'המשימה לא נמצאה. ייתכן שנמחקה.':'The task was not found. It may have been deleted.','נודניק':'Snooze','עדיין פתוחה. להזכיר שוב בעוד:':'Still open. Remind me again in:','מותאם':'Custom','להזכיר שוב בעוד (שעות:דקות)':'Remind again in (hours:minutes)','אין מכשירים עם התראות פעילות.':'No devices have notifications turned on.','תזכורת נוספת ב־{t}':'Another reminder at {t}',
 'סוכן המשימות':'Task Agent','ההגדרות כאן משותפות לכל המכשירים שלך, ופועלות במכשירים שבהם הפעלת התראות.':'These settings are shared by all your devices and apply on devices where notifications are on.','ההגדרות כאן משותפות לכל המכשירים שלך.':'These settings are shared by all your devices.','תזכורת מאוחרת':'Late reminder','להזכיר כשמשימה עם שעה עדיין לא הושלמה':'Remind me when a timed task is still not done','שעתיים':'2 hours','תזכורת אחת אחרי שעת המשימה, אם עדיין לא סימנת אותה כבוצעה. אחרי ההתראה אפשר לבקש נודניק. משימה בלי שעה לא מקבלת תזכורת כזו.':'One reminder after the task’s time if you haven’t marked it done. After the notification you can snooze. Tasks without a time don’t get this reminder.',
 'שעות שקט':'Quiet hours','בלי התראות בשעות השקט':'No notifications during quiet hours','משעה':'From','בחר אם להמשיך לספור את זמן ההמתנה לאחר שעות השקט, או לקבל תזכורת מיד כשהן מסתיימות.':'Choose whether to keep counting the waiting time after quiet hours, or get the reminder as soon as they end.','להמשיך לספור אחרי השקט':'Keep counting after quiet hours','להזכיר מיד בסיום השקט':'Remind as soon as quiet hours end','תזכורת רגילה שנופלת בשעות השקט נשלחת כשהן נגמרות, אם המשימה עדיין רלוונטית.':'A regular reminder that falls in quiet hours is sent when they end, if the task is still relevant.','שעת ההתחלה והסיום זהות, ולכן אין שעות שקט.':'Start and end are the same, so there are no quiet hours.',
@@ -1061,7 +1061,7 @@ function renderModal(){
   let h='';
   if(m.type==='scope'){
     const t=T(m.id);if(!t){closeModal();return}
-    h=sheet(m.op==='edit'?_('עריכת משימה חוזרת'):m.op==='rem'?_('תזכורת למשימה חוזרת'):_('מחיקת משימה חוזרת'),'<p class="note">«'+esc(t.title)+'» · '+esc(longDay(t.date))+('</p><div class="opts"><button type="button" data-act="scope-one">'+_('רק את היום הזה')+'</button><button type="button" data-act="scope-from">'+_('מהיום והלאה')+'</button><button type="button" data-act="mclose">'+_('ביטול')+'</button></div><p class="note">'+_('ימים שכבר עברו לא ישתנו.')+'</p>'));
+    h=sheet(m.op==='edit'?_('עריכת משימה חוזרת'):_('מחיקת משימה חוזרת'),'<p class="note">«'+esc(t.title)+'» · '+esc(longDay(t.date))+('</p><div class="opts"><button type="button" data-act="scope-one">'+_('רק את היום הזה')+'</button><button type="button" data-act="scope-from">'+_('מהיום והלאה')+'</button><button type="button" data-act="mclose">'+_('ביטול')+'</button></div><p class="note">'+_('ימים שכבר עברו לא ישתנו.')+'</p>'));
   }else if(m.type==='logout'){
     h=sheet(_('התנתקות'),'<p class="note">'+_('להתנתק מהחשבון? המשימות והיעדים נשמרים בחשבון.')+'</p><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="dbtn" data-act="logout-yes">'+_('התנתק')+'</button></div>');
   }else if(m.type==='confirm'){
@@ -1467,7 +1467,7 @@ document.addEventListener('click',e=>{
     S.moving={id:t.id};S.month=t.date.slice(0,7);S.sel=t.date;S.expand='';S.autoScroll=true;
     if(S.view!=='month')backToMonth();else render();
     return}
-  if(a==='pop-rem'){const t=T(S.pop&&S.pop.id);closePop();if(!t)return;if(t.seriesId&&!t.general)modal({type:'scope',id:t.id,op:'rem'});else modal({type:'remadd',id:t.id,scope:'one'});return}
+  if(a==='pop-rem'){const t=T(S.pop&&S.pop.id);closePop();if(!t)return;const l=remList(t);modal({type:'remadd',id:t.id,orig:l.map(r=>({...r})),rem:l.map(r=>({...r})),ask:false});return}
   if(a==='pop-edit'||a==='pop-del'||a==='pop-view'||a==='pop-gen'){
     const pid=S.pop&&S.pop.id;closePop();const t=T(pid);if(!t)return;
     if(a==='pop-view'){modal({type:'view',id:t.id});return}
@@ -1499,8 +1499,7 @@ document.addEventListener('click',e=>{
   const m=S.modal;if(!m)return;
   if(a==='scope-one'||a==='scope-from'){
     const scope=a==='scope-one'?'one':'from',t=T(m.id);if(!t)return;
-    if(m.op==='rem')modal({type:'remadd',id:t.id,scope});
-    else if(m.op==='edit')editFormOf(t,scope);
+    if(m.op==='edit')editFormOf(t,scope);
     else{closeModal();withUndo(scope==='from'?_('המשימות נמחקו'):_('המשימה נמחקה'),()=>deleteTask(t.id,scope));render()}
     return}
   if(a==='view-edit'){const t=T(m.id);if(!t)return;if(t.seriesId)modal({type:'scope',id:t.id,op:'edit'});else editFormOf(t,'one');return}
@@ -1515,8 +1514,12 @@ document.addEventListener('click',e=>{
   if(a==='cont-later'){(m.sids||[]).forEach(id=>S.dismissed.add(id));closeModal();return}
   if(a==='cont-choose'){m.choose=true;m.keep={};renderModal();return}
   if(a==='cont-set'){m.keep[el.dataset.sid]=el.dataset.v==='1';renderModal();return}
-  if(a==='ra-b'){remAdd(m.id,m.scope,{t:'before',m:+el.dataset.m});renderModal();return}
-  if(a==='ra-at'){const mid=m.id,sc=m.scope;openTimePicker('',v=>{if(v)remAdd(mid,sc,{t:'at',time:v});if(S.modal)renderModal()},{clear:null,title:_('שעת תזכורת')});return}
+  if(a==='ra-b'){remToggle(m,{t:'before',m:+el.dataset.m});renderModal();return}
+  if(a==='ra-at'){const mm=m;openTimePicker('',v=>{if(v&&S.modal===mm){remToggle(mm,{t:'at',time:v},true);renderModal()}},{clear:null,title:_('שעת תזכורת')});return}
+  if(a==='ra-del'){const tm=el.dataset.time;m.rem=m.rem.filter(r=>!(r.t==='at'&&r.time===tm));renderModal();return}
+  if(a==='ra-save'){const t=T(m.id);if(!t){closeModal();return}if(sameRem(m.rem,m.orig)){closeModal();return}if(t.seriesId){m.ask=true;renderModal();return}closeModal();remApply(t.id,'one',m.orig,m.rem);return}
+  if(a==='ra-back'){m.ask=false;renderModal();return}
+  if(a==='ra-one'||a==='ra-from'||a==='ra-all'){const id=m.id,o=m.orig,n=m.rem;closeModal();remApply(id,a==='ra-one'?'one':a==='ra-from'?'from':'all',o,n);return}
   if(a==='del-yes'){const i=m.id;closeModal();withUndo(_('המשימה נמחקה'),()=>deleteTask(i,'one'));render();return}
   /* הוספה מהירה */
   if(a==='q-time'){collectForm();openTimePicker(m.vals.time,v=>{m.vals.time=v;rerenderForm()});return}
@@ -2644,39 +2647,52 @@ function pushJobsSync(){
 }
 S.pushSubs=[];S.pushJobs=[];S.pushPrefs={};
 
-/* ===== הוספת תזכורת מתפריט ⋮ (בלי טופס העריכה) =====
-   לא מחליפה תזכורות קיימות, ובלי כפילות לאותו מועד. במשימה חוזרת, "מהיום והלאה" מוסיף אותה לכל מופע (כל אחד לרשימה שלו) ולסדרה.
-   משימה כללית נשארת כללית (בלי תאריך אין מתי להזכיר); משימה בלי שעה מקבלת רק שעה מותאמת */
+/* ===== תזכורות מתפריט ⋮ (בלי טופס העריכה) =====
+   חלון עם טיוטה: הקשה על אפשרות מוסיפה אותה, והקשה נוספת מבטלת אותה (רק אותה). שום דבר לא נשמר עד "שמירה".
+   "שמירה" בלי שינוי אמיתי סוגרת בלי לכתוב כלום. במשימה חוזרת, רק אחרי שינוי אמיתי נשאל על מה להחיל אותו:
+   רק המופע הזה / המופע הזה והבאים / כל הסדרה. ימים שכבר עברו לא משתנים (כמו בעריכה ובמחיקה של סדרה).
+   משימה כללית נשארת כללית (בלי תאריך אין מתי להזכיר); משימה בלי שעה מקבלת רק שעה מותאמת. הרשימה push_jobs מתעדכנת לבד מהמשימות */
 function remNote(){return S.loaded.ps&&!S.pushSubs.length?'<div class="note">'+_('כדי לקבל תזכורות כהתראה, הפעל התראות בהגדרות ⚙️ ← התראות.')+'</div>':''}
 /* המועד של תזכורת (תאריך ושעה), כדי לזהות שתי תזכורות שונות שנופלות באותו רגע */
 function remKey(x,r){if(r.t==='at')return (x.date||'')+' '+r.time;const n=toMin(x.time)-r.m;return n>=0?(x.date||'')+' '+fromMin(n):(x.date?addDays(x.date,-1):'-')+' '+fromMin(n+1440)}
-function remAdd(id,scope,r){
-  const t=T(id);if(!t||t.general||t.movedTo)return;
+const remSame=(a,b)=>a.t===b.t&&(a.t==='at'?a.time===b.time:a.m===b.m);
+/* הוספה או ביטול בטיוטה. onlyAdd: שעה מותאמת שכבר קיימת לא מבוטלת מהבורר */
+function remToggle(m,r,onlyAdd){
+  const t=T(m.id);if(!t)return;
+  if(m.rem.some(x=>remSame(x,r))){if(!onlyAdd)m.rem=m.rem.filter(x=>!remSame(x,r));return}
   if(r.t==='before'&&!t.time)return;
-  const next=x=>{if(r.t==='before'&&!x.time)return null;const cur=remList(x),k=remKey(x,r);return cur.some(y=>remKey(x,y)===k)?null:remSort([...cur,r])};
-  let n=0;
-  withUndo(_('התזכורת נוספה'),()=>{
-    if(scope==='from'&&t.seriesId){
-      const from=t.date<todayIL()?todayIL():t.date;
-      S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=from&&!x.movedTo).forEach(x=>{const l=next(x);if(l){updTask(x.id,{reminders:l});n++}});
-      const sr=S.series.find(x=>x.id===t.seriesId);if(sr){const l=next({...sr,date:''});if(l)updSeries(sr.id,{reminders:l})}
-    }else{const l=next(t);if(l){updTask(t.id,{reminders:l});n++}}
-    toast(n?_('התזכורת נוספה'):_('התזכורת הזו כבר קיימת'));
+  const k=remKey(t,r);if(m.rem.some(x=>remKey(t,x)===k)){toast(_('כבר יש תזכורת לאותו מועד'));return}
+  m.rem=remSort([...m.rem,r]);
+}
+/* החלת השינוי: במופע אחד הרשימה מהחלון; בכמה מופעים מחילים רק את מה שנוסף ומה שבוטל, כך שתזכורות אחרות של כל מופע נשמרות */
+function remApply(id,scope,orig,next){
+  const t=T(id);if(!t)return;
+  const added=next.filter(r=>!orig.some(o=>remSame(o,r))),removed=orig.filter(o=>!next.some(r=>remSame(o,r)));
+  const patch=x=>{const l=remList(x).filter(r=>!removed.some(o=>remSame(o,r)));for(const r of added){if(r.t==='before'&&!x.time)continue;const k=remKey(x,r);if(!l.some(y=>remKey(x,y)===k))l.push(r)}return remSort(l)};
+  withUndo(_('התזכורות עודכנו'),()=>{
+    if(t.seriesId&&scope!=='one'){
+      const today=todayIL(),from=scope==='all'||t.date<today?today:t.date;
+      S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=from&&!x.movedTo).forEach(x=>{const l=patch(x);if(!sameRem(l,remList(x)))updTask(x.id,{reminders:l})});
+      const sr=S.series.find(x=>x.id===t.seriesId);if(sr){const l=patch({...sr,date:''});if(!sameRem(l,remList(sr)))updSeries(sr.id,{reminders:l})}
+    }else updTask(t.id,{reminders:remSort(next.filter(r=>r.t==='at'||t.time))});
+    toast(_('התזכורות עודכנו'));
   });
   render();
 }
 function remAddHtml(t,m){
   let b='<p class="note">«'+esc(t.title)+'»'+(t.general?'':' · '+esc(longDay(t.date))+(t.time?' · <span class="ltr">'+esc(t.time)+'</span>':''))+'</p>';
   if(t.general)return b+'<p class="note">'+_('תזכורת אפשר להוסיף למשימה ששובצה ליום. משימה כללית נשארת כללית; כדי לקבל תזכורת, שבץ אותה ליום ואז הוסף תזכורת.')+'</p><div class="mfoot"><button type="button" class="pbtn" data-act="mclose">'+_('הבנתי')+'</button></div>';
-  const cur=remList(t);
-  const bt=(mm,l)=>{const on=cur.some(x=>x.t==='before'&&x.m===mm);return '<button type="button" data-act="ra-b" data-m="'+mm+'" aria-pressed="'+on+'"'+(on?' disabled':'')+'>'+(on?'✓ ':'')+l+'</button>'};
+  if(m.ask)return b+'<p class="note">'+_('על מה להחיל את השינוי בתזכורות?')+'</p><div class="opts"><button type="button" data-act="ra-one">'+_('רק המופע הזה')+'</button><button type="button" data-act="ra-from">'+_('המופע הזה והבאים')+'</button><button type="button" data-act="ra-all">'+_('כל הסדרה')+'</button><button type="button" data-act="ra-back">'+_('חזור')+'</button></div><p class="note">'+_('ימים שכבר עברו לא ישתנו.')+'</p>';
+  const on=r=>m.rem.some(x=>remSame(x,r));
+  const bt=(mm,l)=>{const p=on({t:'before',m:mm});return '<button type="button" data-act="ra-b" data-m="'+mm+'" aria-pressed="'+p+'">'+(p?'✓ ':'')+l+'</button>'};
   b+='<div class="remopts" role="group" aria-label="'+_('תזכורת')+'">';
   if(t.time)b+=bt(5,'5 '+_('דקות לפני'))+bt(15,'15 '+_('דקות לפני'))+bt(60,_('שעה לפני'))+bt(0,_('בזמן המשימה')+' <small class="ltr">('+esc(t.time)+')</small>');
   b+='<button type="button" data-act="ra-at">🕐 '+_('זמן מותאם אישית')+'</button></div>';
+  const ats=m.rem.filter(r=>r.t==='at');
+  if(ats.length)b+='<div class="rchips">'+ats.map(r=>'<span class="chip"><span class="ltr">'+esc(r.time)+'</span><button type="button" data-act="ra-del" data-time="'+esc(r.time)+'" aria-label="'+_('הסרת תזכורת')+' '+esc(r.time)+'">✕</button></span>').join('')+'</div>';
   if(!t.time)b+='<p class="note">'+_('למשימה בלי שעה אפשר להוסיף תזכורת בשעה מסוימת ביום המשימה.')+'</p>';
-  if(cur.length)b+='<div class="note">'+esc(remText(cur))+'</div>';
-  if(m.scope==='from')b+='<p class="note">'+_('התזכורת תתווסף ליום הזה ולכל הימים הבאים.')+'</p>';
-  b+=remNote()+'<div class="mfoot"><button type="button" class="pbtn" data-act="mclose">'+_('סיום')+'</button></div>';
+  b+='<div class="note">'+(m.rem.length?esc(_('תזכורות פעילות:')+' '+remSort(m.rem).map(remLabel).join(' · ')):_('אין תזכורות פעילות'))+'</div><div class="note">'+_('הקש על תזכורת כדי להוסיף אותה, והקש שוב כדי לבטל אותה.')+'</div>';
+  b+=remNote()+'<div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="pbtn" data-act="ra-save">'+_('שמירה')+'</button></div>';
   return b;
 }
 
