@@ -458,6 +458,7 @@ html.locked,html.locked body{overscroll-behavior:none}
 'use strict';
 /* תרגום לאנגלית. המפתח הוא הטקסט בעברית כפי שהוא מופיע בקוד. טקסט שהמשתמש כתב (משימות, פרטים, יעדים, סוגים) לעולם לא עובר תרגום */
 const EN={
+'תזכורות: הוספה וביטול בהקשה':'Reminders: tap to add or cancel','בתפריט ⋮ ← "הוסף תזכורת": הקשה מוסיפה תזכורת, והקשה נוספת מבטלת אותה. השינוי נשמר ב"שמירה", ובמשימה חוזרת בוחרים אם להחיל אותו רק על המופע הזה, על המופע הזה והבאים או על כל הסדרה.':'In the ⋮ menu → “Add reminder”: tap a reminder to add it, and tap again to cancel it. Changes are saved with “Save”, and for a recurring task you choose whether to apply them to this occurrence only, this and following occurrences, or the whole series.',
 'בזמן המשימה':'At task time','התראות לא הופעלו באף מכשיר':'notifications are not on for any device','כדי לקבל תזכורות כהתראה, הפעל התראות בהגדרות ⚙️ ← התראות.':'To get reminders as notifications, turn on notifications in Settings ⚙️ → Notifications.','הוסף תזכורת':'Add reminder','תזכורת אפשר להוסיף למשימה ששובצה ליום. משימה כללית נשארת כללית; כדי לקבל תזכורת, שבץ אותה ליום ואז הוסף תזכורת.':'Reminders can be added to a task that is scheduled on a day. A general task stays general; to get a reminder, schedule it on a day and then add a reminder.','למשימה בלי שעה אפשר להוסיף תזכורת בשעה מסוימת ביום המשימה.':'For a task without a time you can add a reminder at a specific time on the task’s day.','הקש על תזכורת כדי להוסיף אותה, והקש שוב כדי לבטל אותה.':'Tap a reminder to add it, and tap again to cancel it.','תזכורות פעילות:':'Active reminders:','אין תזכורות פעילות':'No active reminders','כבר יש תזכורת לאותו מועד':'There is already a reminder at that time','התזכורות עודכנו':'Reminders updated','על מה להחיל את השינוי בתזכורות?':'Apply the reminder change to?','רק המופע הזה':'Only this occurrence','המופע הזה והבאים':'This and following occurrences','כל הסדרה':'The whole series','חזור':'Back',
 'המשימה לא נמצאה. ייתכן שנמחקה.':'The task was not found. It may have been deleted.','נודניק':'Snooze','עדיין פתוחה. להזכיר שוב בעוד:':'Still open. Remind me again in:','מותאם':'Custom','להזכיר שוב בעוד (שעות:דקות)':'Remind again in (hours:minutes)','אין מכשירים עם התראות פעילות.':'No devices have notifications turned on.','תזכורת נוספת ב־{t}':'Another reminder at {t}',
 'סוכן המשימות':'Task Agent','ההגדרות כאן משותפות לכל המכשירים שלך, ופועלות במכשירים שבהם הפעלת התראות.':'These settings are shared by all your devices and apply on devices where notifications are on.','ההגדרות כאן משותפות לכל המכשירים שלך.':'These settings are shared by all your devices.','תזכורת מאוחרת':'Late reminder','להזכיר כשמשימה עם שעה עדיין לא הושלמה':'Remind me when a timed task is still not done','שעתיים':'2 hours','תזכורת אחת אחרי שעת המשימה, אם עדיין לא סימנת אותה כבוצעה. אחרי ההתראה אפשר לבקש נודניק. משימה בלי שעה לא מקבלת תזכורת כזו.':'One reminder after the task’s time if you haven’t marked it done. After the notification you can snooze. Tasks without a time don’t get this reminder.',
@@ -599,7 +600,7 @@ const EN={
 'עברית ואנגלית':'Hebrew and English','בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.':'In Settings ⚙️ you can switch language. The tasks and goals you wrote are not translated.'
 };
 /* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
-const VERSION='2.0';
+const VERSION='2.1';
 /* ===== העדפות (מראה ושפה): נשמרות במכשיר ב-localStorage. מפתח חדש ונפרד, שום נתון קיים לא נוגע ===== */
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
@@ -2354,7 +2355,8 @@ const NEWS=[
   {id:'hebcal',series:'0.7',ic:'🕎',t:'חגים בלוח',x:'בלוח מסומנים חגים ותאריך עברי, ובהגדרות ⚙️ אפשר לכבות אותם או להוסיף חודש עברי.'},
   {id:'agent',series:'2.0',ic:'🔔',t:'תזכורות גם כשהאפליקציה סגורה',x:'תזכורות למשימות מגיעות כהתראה, גם כשהאפליקציה סגורה, במכשירים שתומכים. מפעילים בהגדרות ⚙️ ← התראות. לחיצה על ההתראה פותחת את המשימה ומדגישה אותה.'},
   {id:'agent2',series:'2.0',ic:'🤖',t:'סוכן המשימות',x:'בהגדרות ⚙️ ← סוכן המשימות: תזכורת מאוחרת למשימה שלא הושלמה (עם נודניק), שעות שקט, וסיכומי משימות בשעות שתבחרו.'},
-  {id:'remmenu',series:'2.0',ic:'⏰',t:'הוסף תזכורת מהתפריט',x:'בתפריט ⋮ של משימה: 5 או 15 דקות לפני, שעה לפני, בזמן המשימה או שעה לבחירתכם, בלי לפתוח את העריכה.'}
+  {id:'remmenu',series:'2.0',ic:'⏰',t:'הוסף תזכורת מהתפריט',x:'בתפריט ⋮ של משימה: 5 או 15 דקות לפני, שעה לפני, בזמן המשימה או שעה לבחירתכם, בלי לפתוח את העריכה.'},
+  {id:'remtoggle',series:'2.1',ic:'🔔',t:'תזכורות: הוספה וביטול בהקשה',x:'בתפריט ⋮ ← "הוסף תזכורת": הקשה מוסיפה תזכורת, והקשה נוספת מבטלת אותה. השינוי נשמר ב"שמירה", ובמשימה חוזרת בוחרים אם להחיל אותו רק על המופע הזה, על המופע הזה והבאים או על כל הסדרה.'}
 ];
 const NEWS_SERIES=NEWS[NEWS.length-1].series;
 function newsLoad(){let n={};try{n=JSON.parse(lsGet('cal.news')||'{}')||{}}catch(e){n={}}if(!n.ack||typeof n.ack!=='object')n.ack={};return n}
