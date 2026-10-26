@@ -5,19 +5,9 @@ const webpush = require('web-push');
 const { PROJECT_ID, vapid } = require('./_lib/config');
 const { verifyIdToken, listDocs, deleteDoc } = require('./_lib/google');
 const { send } = require('./_lib/http');
+const { allowedEndpoint } = require('./_lib/push');
 
 const lastSent = new Map();
-
-/* שולחים רק לשירותי ה-push הרשמיים (Apple, Google, Microsoft, Mozilla), כדי שכתובת שהוזנה ידנית לא תגרום לשרת לפנות לכתובות אחרות */
-const PUSH_HOSTS = ['.push.apple.com', 'fcm.googleapis.com', '.notify.windows.com', 'push.services.mozilla.com'];
-function allowedEndpoint(u) {
-  try {
-    const x = new URL(u);
-    return x.protocol === 'https:' && PUSH_HOSTS.some((h) => (h.startsWith('.') ? x.hostname.endsWith(h) : x.hostname === h || x.hostname.endsWith('.' + h)));
-  } catch (e) {
-    return false;
-  }
-}
 
 module.exports = async (req, res) => {
   const cpu0 = process.cpuUsage();

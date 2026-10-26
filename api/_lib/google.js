@@ -91,4 +91,42 @@ async function deleteDoc(bearer, projectId, path) {
   if (!r.ok && r.status !== 404) throw new Error('firestore delete: HTTP ' + r.status);
 }
 
-module.exports = { verifyIdToken, listDocs, deleteDoc };
+/* שאילתה (כולל collection group) מתחת לשורש. מחזיר [{name, path, id, updateTime, data}] */
+async function runQuery(bearer, projectId, structuredQuery) {
+  const r = await fetch(docsBase(projectId).replace(/\/$/, '') + ':runQuery', {
+    method: 'POST',
+    headers: { authorization: 'Bearer ' + bearer, 'content-type': 'application/json' },
+    body: JSON.stringify({ structuredQuery }),
+  });
+  if (!r.ok) {
+    const j = await r.json().catch(() => null);
+    const e = Array.isArray(j) ? j[0] && j[0].error : j && j.error;
+    throw new Error('firestore query: HTTP ' + r.status + (e && e.status ? ' ' + e.status : ''));
+  }
+  const out = [];
+  for (const row of await r.json()) {
+    const d = row.document;
+    if (!d) continue;
+    const data = {};
+    for (const k in d.fields || {}) data[k] = decode(d.fields[k]);
+    const path = d.name.split('/documents/')[1];
+    out.push({ name: d.name, path, id: path.split('/').pop(), updateTime: d.updateTime, data });
+  }
+  return out;
+}
+
+/* עדכון שדות במסמך רק אם הוא לא השתנה מאז שנקרא (updateTime). מחזיר true אם עודכן, false אם מישהו אחר כבר שינה אותו.
+   כך שתי הפעלות במקביל לא יכולות "לתפוס" את אותה תזכורת */
+async function claimDoc(bearer, name, updateTime, fields) {
+  const mask = Object.keys(fields).map((f) => 'updateMask.fieldPaths=' + encodeURIComponent(f)).join('&');
+  const r = await fetch('https://firestore.googleapis.com/v1/' + name + '?' + mask + '&currentDocument.updateTime=' + encodeURIComponent(updateTime), {
+    method: 'PATCH',
+    headers: { authorization: 'Bearer ' + bearer, 'content-type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+  if (r.ok) return true;
+  if (r.status === 400 || r.status === 409 || r.status === 404) return false; // FAILED_PRECONDITION / ABORTED / נמחק בינתיים
+  throw new Error('firestore claim: HTTP ' + r.status);
+}
+
+module.exports = { verifyIdToken, listDocs, deleteDoc, runQuery, claimDoc };

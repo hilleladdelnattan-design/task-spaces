@@ -2464,8 +2464,8 @@ async function pushTest(){
   finally{S.push.busy=false;render()}
 }
 /* ===== תזכורות: רשימת זמני השליחה (push_jobs) =====
-   לכל תזכורת עתידית נשמר מסמך users/{uid}/push_jobs/{taskId}_{at} עם {at (רגע השליחה, ms), date (תאריך המשימה), time (שעת המשימה או '')} בלבד:
-   בלי שם משימה ובלי פרטים. מזהה קבוע = אין כפילויות (גם כששתי תזכורות של אותה משימה נופלות באותו רגע).
+   לכל תזכורת עתידית נשמר מסמך users/{uid}/push_jobs/{taskId}_{at} עם {at (רגע השליחה, ms), date (תאריך המשימה), time (שעת המשימה או ''), title (שם המשימה בלבד)}:
+   בלי פרטים, הערות או תתי־משימות (החלטת הלל 26/10: בהתראה מופיע שם המשימה). מזהה קבוע = אין כפילויות (גם כששתי תזכורות של אותה משימה נופלות באותו רגע).
    הרשימה מחושבת מחדש מכל המשימות אחרי כל שינוי, מכל מכשיר, ולכן יצירה, עריכה, העברה, השלמה, מחיקה, שינוי תזכורת ומופעי סדרות מתעדכנים במקום אחד.
    נשמרת רק כשלמשתמש יש לפחות מכשיר אחד עם התראות; בלי מכשירים הרשימה מתרוקנת. השליחה עצמה בשרת, בשלב מאוחר יותר */
 const PUSH_GRACE=15*60*1000; /* תזכורת שזמנה עבר לפני פחות מ-15 דקות נשארת ברשימה, כדי שהשרת עוד יספיק לשלוח אותה */
@@ -2489,7 +2489,7 @@ function pushJobsWanted(tasks,now){
     for(const r of reminderTimes(t)){
       const at=ilEpoch(r.date,r.time);
       if(at===null||at<=now-PUSH_GRACE)continue;
-      out[t.id+'_'+at]={at,date:t.date,time:t.time||''};
+      out[t.id+'_'+at]={at,date:t.date,time:t.time||'',title:String(t.title||'').slice(0,120)};
     }
   }
   return out;
@@ -2497,7 +2497,7 @@ function pushJobsWanted(tasks,now){
 /* מה לכתוב: מסמכים חסרים נוצרים, מסמכים שהשתנו מתעדכנים (בלי לגעת בשדות שהשרת יוסיף), ומה שכבר לא צריך נמחק */
 function pushJobsDiff(wanted,existing){
   const ex=new Map(existing.map(j=>[j.id,j])),set=[],upd=[],del=[];
-  for(const id in wanted){const w=wanted[id],e=ex.get(id);if(!e)set.push([id,w]);else if(e.at!==w.at||e.date!==w.date||e.time!==w.time)upd.push([id,w])}
+  for(const id in wanted){const w=wanted[id],e=ex.get(id);if(!e)set.push([id,w]);else if(e.at!==w.at||e.date!==w.date||e.time!==w.time||e.title!==w.title)upd.push([id,w])}
   for(const e of existing)if(!Object.prototype.hasOwnProperty.call(wanted,e.id))del.push(e.id);
   return {set,upd,del};
 }
