@@ -419,17 +419,52 @@ body.offline .wrap{padding-top:calc(34px + env(safe-area-inset-top))}
 .sed .xbtn{flex:none}
 html.locked,html.locked body{overscroll-behavior:none}
 .sheet,.psheet{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* ===== גרסה 2.0: התראות וסוכן המשימות ===== */
+:root{--hl:rgba(74,85,208,.55)}
+:root[data-theme="dark"]{--hl:rgba(138,148,255,.6)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]){--hl:rgba(138,148,255,.6)}}
+/* הדגשת משימה שנפתחה מהתראה: זוהר שמהבהב כ-3 שניות ונעלם בהדרגה */
+.tk.hl{animation:hlPulse 3s ease-in-out both;z-index:3}
+@keyframes hlPulse{0%{box-shadow:0 0 0 0 var(--hl)}12%,40%,68%{box-shadow:0 0 0 4px var(--hl),0 0 18px 4px var(--hl)}26%,54%{box-shadow:0 0 0 2px var(--hl),0 0 6px 1px var(--hl)}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.tk.hl{animation:none;box-shadow:0 0 0 3px var(--hl)}}
+/* נודניק אחרי תזכורת מאוחרת */
+#snzRoot{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));z-index:46;display:flex;justify-content:center;pointer-events:none;padding:0 12px}
+.snzcard{pointer-events:auto;max-width:440px;width:100%;background:var(--surface);border:1px solid var(--accent);border-radius:18px;box-shadow:var(--shadow);padding:10px 12px;display:flex;flex-direction:column;gap:6px;animation:newsin .35s ease both}
+.snzh{display:flex;align-items:center;gap:8px}
+.snzh b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snzcard .note{margin:0}
+.snzcard .seg button{flex:1;min-width:60px;min-height:42px;padding:0 8px}
+@media(prefers-reduced-motion:reduce){.snzcard{animation:none}}
+/* "הוסף תזכורת" מתפריט המשימה */
+.remopts{display:flex;flex-direction:column;gap:8px;margin:6px 0}
+.remopts button{min-height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:start;padding:0 14px;font-size:15.5px;color:var(--ink)}
+.remopts button[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.remopts small{color:var(--muted);font-size:12.5px}
+/* הגדרות סוכן המשימות */
+.agsub{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.agsub h3{margin:0 0 4px;font-size:14.5px}
+.agsub .tgl{border-top:none}
+.agsub .seg{margin:6px 0}
+.agrow{display:flex;gap:8px;align-items:center;margin:6px 0}
+.agrow .fl{flex:none;color:var(--muted)}
 </style></head><body>
 <div id="net" role="status">אין חיבור · השינויים נשמרים במכשיר וישלחו כשהחיבור יחזור</div>
 <div id="app"><div class="loading">טוען…</div></div>
 <div id="modalRoot"></div><div id="pickRoot"></div><div id="popRoot"></div>
-<div id="newsRoot"></div><div id="toast" role="status"></div><div id="undo" role="status"></div><div id="updRoot"></div>
+<div id="newsRoot"></div><div id="snzRoot"></div><div id="toast" role="status"></div><div id="undo" role="status"></div><div id="updRoot"></div>
 <div class="loginbox" id="login" hidden><div class="lcard"><h1 id="lgT">לוח משימות</h1><p id="lgP">כדי לראות את המשימות שלך, היכנס עם חשבון Google.</p><button class="pbtn" id="loginBtn" type="button">כניסה עם Google</button><p id="loginErr" role="alert"></p></div></div>
 <script src="fb.js"></script>
 <script>
 'use strict';
 /* תרגום לאנגלית. המפתח הוא הטקסט בעברית כפי שהוא מופיע בקוד. טקסט שהמשתמש כתב (משימות, פרטים, יעדים, סוגים) לעולם לא עובר תרגום */
 const EN={
+'בזמן המשימה':'At task time','התראות לא הופעלו באף מכשיר':'notifications are not on for any device','כדי לקבל תזכורות כהתראה, הפעל התראות בהגדרות ⚙️ ← התראות.':'To get reminders as notifications, turn on notifications in Settings ⚙️ → Notifications.','תזכורת למשימה חוזרת':'Reminder for a recurring task','הוסף תזכורת':'Add reminder','תזכורת אפשר להוסיף למשימה ששובצה ליום. משימה כללית נשארת כללית; כדי לקבל תזכורת, שבץ אותה ליום ואז הוסף תזכורת.':'Reminders can be added to a task that is scheduled on a day. A general task stays general; to get a reminder, schedule it on a day and then add a reminder.','למשימה בלי שעה אפשר להוסיף תזכורת בשעה מסוימת ביום המשימה.':'For a task without a time you can add a reminder at a specific time on the task’s day.','התזכורת תתווסף ליום הזה ולכל הימים הבאים.':'The reminder will be added to this day and all following days.','סיום':'Done','התזכורת נוספה':'Reminder added','התזכורת הזו כבר קיימת':'This reminder already exists',
+'המשימה לא נמצאה. ייתכן שנמחקה.':'The task was not found. It may have been deleted.','נודניק':'Snooze','עדיין פתוחה. להזכיר שוב בעוד:':'Still open. Remind me again in:','מותאם':'Custom','להזכיר שוב בעוד (שעות:דקות)':'Remind again in (hours:minutes)','אין מכשירים עם התראות פעילות.':'No devices have notifications turned on.','תזכורת נוספת ב־{t}':'Another reminder at {t}',
+'סוכן המשימות':'Task Agent','ההגדרות כאן משותפות לכל המכשירים שלך, ופועלות במכשירים שבהם הפעלת התראות.':'These settings are shared by all your devices and apply on devices where notifications are on.','ההגדרות כאן משותפות לכל המכשירים שלך.':'These settings are shared by all your devices.','תזכורת מאוחרת':'Late reminder','להזכיר כשמשימה עם שעה עדיין לא הושלמה':'Remind me when a timed task is still not done','שעתיים':'2 hours','תזכורת אחת אחרי שעת המשימה, אם עדיין לא סימנת אותה כבוצעה. אחרי ההתראה אפשר לבקש נודניק. משימה בלי שעה לא מקבלת תזכורת כזו.':'One reminder after the task’s time if you haven’t marked it done. After the notification you can snooze. Tasks without a time don’t get this reminder.',
+'שעות שקט':'Quiet hours','בלי התראות בשעות השקט':'No notifications during quiet hours','משעה':'From','בחר אם להמשיך לספור את זמן ההמתנה לאחר שעות השקט, או לקבל תזכורת מיד כשהן מסתיימות.':'Choose whether to keep counting the waiting time after quiet hours, or get the reminder as soon as they end.','להמשיך לספור אחרי השקט':'Keep counting after quiet hours','להזכיר מיד בסיום השקט':'Remind as soon as quiet hours end','תזכורת רגילה שנופלת בשעות השקט נשלחת כשהן נגמרות, אם המשימה עדיין רלוונטית.':'A regular reminder that falls in quiet hours is sent when they end, if the task is still relevant.','שעת ההתחלה והסיום זהות, ולכן אין שעות שקט.':'Start and end are the same, so there are no quiet hours.',
+'סיכומי משימות':'Task summaries','בכל שעה שתבחר תגיע התראה אחת עם מספר המשימות שעדיין דורשות טיפול היום, רק אם יש כאלה.':'At each time you choose you’ll get one notification with the number of tasks that still need attention today, only if there are any.','הוסף שעת סיכום':'Add summary time','זמן ההמתנה הקצר ביותר הוא 5 דקות.':'The shortest waiting time is 5 minutes.','זמן המתנה (שעות:דקות)':'Waiting time (hours:minutes)','תחילת שעות השקט':'Quiet hours start','סוף שעות השקט':'Quiet hours end','השעה הזו כבר ברשימה.':'This time is already on the list.','שעת סיכום':'Summary time',
+'תזכורות למשימות נשלחות לכל המכשירים שבהם ההתראות פעילות, גם כשהאפליקציה סגורה.':'Task reminders are sent to all devices where notifications are on, even when the app is closed.',
+'תזכורות גם כשהאפליקציה סגורה':'Reminders even when the app is closed','תזכורות למשימות מגיעות כהתראה, גם כשהאפליקציה סגורה, במכשירים שתומכים. מפעילים בהגדרות ⚙️ ← התראות. לחיצה על ההתראה פותחת את המשימה ומדגישה אותה.':'Task reminders arrive as notifications, even when the app is closed, on supported devices. Turn them on in Settings ⚙️ → Notifications. Tapping a notification opens the task and highlights it.','בהגדרות ⚙️ ← סוכן המשימות: תזכורת מאוחרת למשימה שלא הושלמה (עם נודניק), שעות שקט, וסיכומי משימות בשעות שתבחרו.':'In Settings ⚙️ → Task Agent: a late reminder for a task that isn’t done (with snooze), quiet hours, and task summaries at times you choose.','הוסף תזכורת מהתפריט':'Add a reminder from the menu','בתפריט ⋮ של משימה: 5 או 15 דקות לפני, שעה לפני, בזמן המשימה או שעה לבחירתכם, בלי לפתוח את העריכה.':'In a task’s ⋮ menu: 5 or 15 minutes before, 1 hour before, at task time or a time you choose, without opening the editor.',
 'לוח משימות':'Task Calendar','שעה':'Time','ב':'in',
 'אין חיבור · השינויים נשמרים במכשיר וישלחו כשהחיבור יחזור':'Offline · changes are saved on this device and will sync when the connection returns',
 'כדי לראות את המשימות שלך, היכנס עם חשבון Google.':'To see your tasks, sign in with your Google account.','כניסה עם Google':'Sign in with Google',
@@ -564,7 +599,7 @@ const EN={
 'עברית ואנגלית':'Hebrew and English','בהגדרות ⚙️ אפשר להחליף שפה. המשימות והיעדים שכתבתם לא מתורגמים.':'In Settings ⚙️ you can switch language. The tasks and goals you wrote are not translated.'
 };
 /* ===== זמן: כל הלוגיקה לפי שעון ישראל (Asia/Jerusalem), לא לפי אזור הזמן של המכשיר ===== */
-const VERSION='0.7';
+const VERSION='2.0';
 /* ===== העדפות (מראה ושפה): נשמרות במכשיר ב-localStorage. מפתח חדש ונפרד, שום נתון קיים לא נוגע ===== */
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
@@ -641,10 +676,10 @@ function parseTimeText(s){
 }
 
 /* ===== תזכורות =====
-   מבנה שמור במשימה: reminders=[{t:'before',m:5|15|60},{t:'at',time:'HH:MM'}]
-   'before' = לפני שעת המשימה (רק למשימה עם שעה). 'at' = שעה מוחלטת באותו יום.
-   האפליקציה הזו לא מפעילה שום התראה. reminderTimes מחזירה את הזמנים המחושבים כדי שגרסת אפליקציה (Capacitor) תוכל לתזמן התראות מקומיות. */
-const REM_BEFORE=[5,15,60];
+   מבנה שמור במשימה: reminders=[{t:'before',m:0|5|15|60},{t:'at',time:'HH:MM'}]
+   'before' = לפני שעת המשימה (רק למשימה עם שעה; m=0 = "בזמן המשימה", מגרסה 2.0). 'at' = שעה מוחלטת באותו יום.
+   reminderTimes מחזירה את הזמנים המחושבים. השליחה עצמה בשרת ("סוכן המשימות"), לפי הרשימה push_jobs שהאפליקציה מחשבת */
+const REM_BEFORE=[0,5,15,60];
 function remList(t){
   const a=Array.isArray(t.reminders)?t.reminders:[];
   return a.filter(r=>r&&((r.t==='before'&&t.time&&REM_BEFORE.includes(r.m))||(r.t==='at'&&/^\d{2}:\d{2}$/.test(r.time||''))));
@@ -653,14 +688,15 @@ function remSort(a){
   const b=a.filter(r=>r.t==='before').sort((x,y)=>y.m-x.m),c=a.filter(r=>r.t==='at').sort((x,y)=>x.time<y.time?-1:x.time>y.time?1:0);
   return [...b,...c];
 }
-const remLabel=r=>r.t==='at'?r.time:(r.m===60?_('שעה¦h'):r.m+(' '+_('דק׳')));
-const remText=a=>{const l=remSort(a);return l.length?'🔔 '+l.map(remLabel).join(' · ')+' ('+_('התראות עדיין לא פעילות')+')':''};
+const remLabel=r=>r.t==='at'?r.time:r.m===0?_('בזמן המשימה'):(r.m===60?_('שעה¦h'):r.m+(' '+_('דק׳')));
+/* ליד התזכורות מופיעה הערה רק כשאף מכשיר בחשבון לא הפעיל התראות (ואז אין לאן לשלוח) */
+const remText=a=>{const l=remSort(a);if(!l.length)return '';const off=S.loaded.ps&&!S.pushSubs.length;return '🔔 '+l.map(remLabel).join(' · ')+(off?' ('+_('התראות לא הופעלו באף מכשיר')+')':'')};
 function reminderTimes(t){
   if(!t.date)return [];
   return remSort(remList(t)).map(r=>{
-    if(r.t==='at')return {date:t.date,time:r.time};
+    if(r.t==='at')return {date:t.date,time:r.time,k:'at'};
     const n=toMin(t.time)-r.m;
-    return n>=0?{date:t.date,time:fromMin(n)}:{date:addDays(t.date,-1),time:fromMin(n+1440)};
+    return n>=0?{date:t.date,time:fromMin(n),k:'before'}:{date:addDays(t.date,-1),time:fromMin(n+1440),k:'before'};
   });
 }
 const sameRem=(a,b)=>JSON.stringify(remSort(a||[]))===JSON.stringify(remSort(b||[]));
@@ -849,6 +885,8 @@ function render(){
   try{root.innerHTML=S.view==='day'?renderDay():S.view==='goal'?renderGoal():S.view==='settings'?renderSettings():renderMonth()}
   catch(e){console.error('render',e);root.innerHTML=errBox(_('משהו השתבש בהצגת המסך. הנתונים שלך לא נפגעו.'));return}
   if(S.autoScroll&&S.view==='day'){S.autoScroll=false;scrollToRelevant()}else if(S.autoScroll){S.autoScroll=false;window.scrollTo(0,0)}else window.scrollTo(0,y);
+  if(S.hl)hlApply(false);
+  renderSnz();
 }
 function scrollToRelevant(){
   const first=S.tasks.filter(t=>!t.general&&t.date===S.sel&&t.time).sort(cmpT)[0];
@@ -861,6 +899,7 @@ function scrollToRelevant(){
 
 /* ===== ניווט ===== */
 function route(){
+  if(notifTake()){route();notifRun();return}
   const m=/^#d=(\d{4}-\d{2}-\d{2})$/.exec(location.hash),gm=/^#g=([A-Za-z0-9_-]+)$/.exec(location.hash);
   const pv=S.view+'|'+S.sel;S.expand='';
   if(location.hash==='#s'){if(S.view!=='settings')S.autoScroll=true;S.view='settings'}
@@ -883,6 +922,7 @@ function dayClick(d){
   S.lastDay={d,t:now};S.sel=d;render();
 }
 addEventListener('popstate',route);
+addEventListener('hashchange',()=>{if(/^#n=/.test(location.hash))route()});
 
 /* ===== פעולות על נתונים ===== */
 const mkInst=(s,d,i,now)=>({title:s.title,details:s.details||'',time:s.time||'',endTime:s.endTime||'',date:d,done:false,seriesId:s.id,reminders:s.reminders||[],createdAt:now+i});
@@ -1007,12 +1047,12 @@ function remHtml(m){
   const has=mm=>list.some(r=>r.t==='before'&&r.m===mm);
   const b=(act,attrs,l,on)=>'<button type="button" data-act="'+act+'" '+attrs+' aria-pressed="'+!!on+'">'+l+'</button>';
   let h=('<div class="frow col"><span class="fl">🔔 '+_('תזכורת')+'</span><div class="seg" role="group" aria-label="'+_('תזכורת')+'">')+b('rm0','',_('ללא תזכורת'),!list.length);
-  if(hasT)h+=b('rm','data-m="5"',('5 '+_('דקות לפני')),has(5))+b('rm','data-m="15"',('15 '+_('דקות לפני')),has(15))+b('rm','data-m="60"',_('שעה לפני'),has(60));
+  if(hasT)h+=b('rm','data-m="5"',('5 '+_('דקות לפני')),has(5))+b('rm','data-m="15"',('15 '+_('דקות לפני')),has(15))+b('rm','data-m="60"',_('שעה לפני'),has(60))+b('rm','data-m="0"',_('בזמן המשימה')+' <small class="ltr">('+esc(v.time)+')</small>',has(0));
   h+=b('rat','',_('זמן מותאם אישית'),false)+'</div></div>';
   const ats=list.filter(r=>r.t==='at').sort((x,y)=>x.time<y.time?-1:1);
   if(ats.length)h+='<div class="rchips">'+ats.map(r=>'<span class="chip"><span class="ltr">'+esc(r.time)+'</span><button type="button" data-act="rdel" data-time="'+esc(r.time)+('" aria-label="'+_('הסרת תזכורת')+' ')+esc(r.time)+'">✕</button></span>').join('')+'</div>';
   if(list.length)h+='<div class="note">'+esc(remText(list))+'</div>';
-  h+=('<div class="note">'+_('שים לב: כרגע ההתראות לא עובדות ולא תקבל התראה בזמן. התזכורות נשמרות עם המשימה ויתחילו לפעול כשההתראות יתווספו.')+'</div>');
+  h+=remNote();
   return h;
 }
 function renderModal(){
@@ -1021,7 +1061,7 @@ function renderModal(){
   let h='';
   if(m.type==='scope'){
     const t=T(m.id);if(!t){closeModal();return}
-    h=sheet(m.op==='edit'?_('עריכת משימה חוזרת'):_('מחיקת משימה חוזרת'),'<p class="note">«'+esc(t.title)+'» · '+esc(longDay(t.date))+('</p><div class="opts"><button type="button" data-act="scope-one">'+_('רק את היום הזה')+'</button><button type="button" data-act="scope-from">'+_('מהיום והלאה')+'</button><button type="button" data-act="mclose">'+_('ביטול')+'</button></div><p class="note">'+_('ימים שכבר עברו לא ישתנו.')+'</p>'));
+    h=sheet(m.op==='edit'?_('עריכת משימה חוזרת'):m.op==='rem'?_('תזכורת למשימה חוזרת'):_('מחיקת משימה חוזרת'),'<p class="note">«'+esc(t.title)+'» · '+esc(longDay(t.date))+('</p><div class="opts"><button type="button" data-act="scope-one">'+_('רק את היום הזה')+'</button><button type="button" data-act="scope-from">'+_('מהיום והלאה')+'</button><button type="button" data-act="mclose">'+_('ביטול')+'</button></div><p class="note">'+_('ימים שכבר עברו לא ישתנו.')+'</p>'));
   }else if(m.type==='logout'){
     h=sheet(_('התנתקות'),'<p class="note">'+_('להתנתק מהחשבון? המשימות והיעדים נשמרים בחשבון.')+'</p><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="button" class="dbtn" data-act="logout-yes">'+_('התנתק')+'</button></div>');
   }else if(m.type==='confirm'){
@@ -1077,6 +1117,10 @@ function renderModal(){
     b+=('<div class="err" id="f_err" role="alert"></div><div class="mfoot"><button type="button" class="gbtn" data-act="mclose">'+_('ביטול')+'</button><button type="submit" class="pbtn">'+_('שמירה')+'</button></div></form>');
     h=sheet(m.general?(create?_('משימה כללית'):_('עריכת משימה כללית')):create?_('משימה חדשה'):from?_('עריכה · מהיום והלאה'):_('עריכת משימה'),b);
   }
+  else if(m.type==='remadd'){
+    const t=T(m.id);if(!t){closeModal();return}
+    h=sheet('🔔 '+_('הוסף תזכורת'),remAddHtml(t,m));
+  }
   else if(m.type==='view'){
     const t=T(m.id);if(!t){closeModal();return}
     const when=t.general?_('משימה כללית'):esc(longDay(t.date))+(t.time?' · <span class="ltr">'+esc(t.time)+(endMin(t)!==null?'–'+esc(t.endTime):'')+'</span>':'');
@@ -1100,7 +1144,7 @@ function editFormOf(t,scope){openForm('edit',{id:t.id,scope,general:!!t.general,
 
 /* ===== בוחר תאריך ובוחר שעה (אותם בוחרים בכל האפליקציה) ===== */
 function openDatePicker(value,min,cb,max){S.pick={type:'date',value:isDate(value)?value:todayIL(),min:min||'',max:max||'',view:(isDate(value)?value:todayIL()).slice(0,7),cb};renderPick()}
-function openTimePicker(value,cb,o){o=o||{};const v=/^\d{2}:\d{2}$/.test(value||'')?value:(o.def||'08:00');S.pick={type:'time',h:+v.slice(0,2),m:+v.slice(3),cb,clear:o.clear===undefined?_('ללא שעה'):o.clear,title:o.title||''};renderPick(true)}
+function openTimePicker(value,cb,o){o=o||{};const v=/^\d{2}:\d{2}$/.test(value||'')?value:(o.def||pad(ilParts().h)+':00');S.pick={type:'time',h:+v.slice(0,2),m:+v.slice(3),cb,clear:o.clear===undefined?_('ללא שעה'):o.clear,title:o.title||''};renderPick(true)}
 function closePick(){S.pick=null;$('#pickRoot').innerHTML='';lockSync()}
 function renderPick(scroll){
   const p=S.pick,root=$('#pickRoot');
@@ -1125,7 +1169,7 @@ function openPop(id,btn){
   const r=btn.getBoundingClientRect();
   S.pop={id,sy:window.scrollY};
   const root=$('#popRoot');
-  root.innerHTML='<div class="pop" role="menu" id="popBox">'+(t.movedTo?'':('<button type="button" role="menuitem" data-act="pop-edit">✏️ '+_('עריכה')+'</button>'))+(!t.general&&!t.movedTo&&!t.done&&t.date<todayIL()?('<button type="button" role="menuitem" data-act="pop-today">⬅️ '+_('להיום')+'</button>'):'')+(!t.general&&!t.movedTo&&!t.done&&t.date!==addDays(todayIL(),1)?('<button type="button" role="menuitem" data-act="pop-tmr">⬅️ '+_('למחר')+'</button>'):'')+(!t.general&&!t.movedTo?('<button type="button" role="menuitem" data-act="pop-move">↔️ '+_('העברה')+'</button>'):'')+(t.details?('<button type="button" role="menuitem" data-act="pop-view">📝 '+_('פרטים')+'</button>'):'')+(canGeneral(t)?('<button type="button" role="menuitem" data-act="pop-gen">📌 '+_('הפוך למשימה כללית')+'</button>'):'')+('<button type="button" role="menuitem" class="rd" data-act="pop-del">🗑️ '+_('מחיקה')+'</button></div>');
+  root.innerHTML='<div class="pop" role="menu" id="popBox">'+(t.movedTo?'':('<button type="button" role="menuitem" data-act="pop-edit">✏️ '+_('עריכה')+'</button><button type="button" role="menuitem" data-act="pop-rem">🔔 '+_('הוסף תזכורת')+'</button>'))+(!t.general&&!t.movedTo&&!t.done&&t.date<todayIL()?('<button type="button" role="menuitem" data-act="pop-today">⬅️ '+_('להיום')+'</button>'):'')+(!t.general&&!t.movedTo&&!t.done&&t.date!==addDays(todayIL(),1)?('<button type="button" role="menuitem" data-act="pop-tmr">⬅️ '+_('למחר')+'</button>'):'')+(!t.general&&!t.movedTo?('<button type="button" role="menuitem" data-act="pop-move">↔️ '+_('העברה')+'</button>'):'')+(t.details?('<button type="button" role="menuitem" data-act="pop-view">📝 '+_('פרטים')+'</button>'):'')+(canGeneral(t)?('<button type="button" role="menuitem" data-act="pop-gen">📌 '+_('הפוך למשימה כללית')+'</button>'):'')+('<button type="button" role="menuitem" class="rd" data-act="pop-del">🗑️ '+_('מחיקה')+'</button></div>');
   const box=$('#popBox'),w=box.offsetWidth,hh=box.offsetHeight;
   let left=Math.min(Math.max(8,r.left),innerWidth-w-8),top=r.bottom+2;
   if(top+hh>innerHeight-8)top=Math.max(8,r.top-hh-2);
@@ -1394,10 +1438,10 @@ document.addEventListener('click',e=>{
     if(a==='pk-day'){const cb=p.cb,v=el.dataset.d;closePick();cb(v);return}
     if(a==='pk-today'){const t=todayIL();if(p.min&&t<p.min){$('#pk_err').textContent=_('אי אפשר לבחור תאריך שעבר.');return}const cb=p.cb;closePick();cb(t);return}
     if(a==='pk-type'){const v=parseDateText($('#pk_in').value);if(!v){$('#pk_err').textContent=_('כתוב תאריך כמו 8/10/2026.');return}if(p.min&&v<p.min){$('#pk_err').textContent=_('אי אפשר לבחור תאריך שעבר.');return}if(p.max&&v>p.max){$('#pk_err').textContent=_('אי אפשר לבחור תאריך עתידי.');return}const cb=p.cb;closePick();cb(v);return}
-    if(a==='tp-h'){p.h=+el.dataset.v;renderPick(true);return}
-    if(a==='tp-m'){p.m=+el.dataset.v;renderPick(true);return}
+    if(a==='tp-h'||a==='tp-m'){tpSel(a==='tp-h'?'h':'m',+el.dataset.v,true);return}
     if(a==='tp-clear'){const cb=p.cb;closePick();cb('');return}
     if(a==='tp-ok'){
+      tpSync();
       const typed=$('#tp_in').value.trim();let v=pad(p.h)+':'+pad(p.m);
       if(typed){v=parseTimeText(typed);if(!v){$('#pk_err').textContent=_('כתוב שעה כמו 18:30.');return}}
       const cb=p.cb;closePick();cb(v);return}
@@ -1406,6 +1450,9 @@ document.addEventListener('click',e=>{
   if(subsClick(a,el,id,e))return;
   if(goalClick(a,el,id,e))return;
   if(a==='undo'){doUndo();return}
+  if(a==='snz'){snooze(+el.dataset.m);return}
+  if(a==='snz-c'){openTimePicker('00:30',v=>{const mm=v?toMin(v):0;if(mm>0)snooze(mm)},{clear:null,title:_('להזכיר שוב בעוד (שעות:דקות)')});return}
+  if(a==='snz-x'){S.snz=null;renderSnz();return}
   if(a==='reload'){location.reload();return}
   if(a==='settings'){openSettings();return}
   if(settingsClick(a,el,id,e))return;
@@ -1420,6 +1467,7 @@ document.addEventListener('click',e=>{
     S.moving={id:t.id};S.month=t.date.slice(0,7);S.sel=t.date;S.expand='';S.autoScroll=true;
     if(S.view!=='month')backToMonth();else render();
     return}
+  if(a==='pop-rem'){const t=T(S.pop&&S.pop.id);closePop();if(!t)return;if(t.seriesId&&!t.general)modal({type:'scope',id:t.id,op:'rem'});else modal({type:'remadd',id:t.id,scope:'one'});return}
   if(a==='pop-edit'||a==='pop-del'||a==='pop-view'||a==='pop-gen'){
     const pid=S.pop&&S.pop.id;closePop();const t=T(pid);if(!t)return;
     if(a==='pop-view'){modal({type:'view',id:t.id});return}
@@ -1451,7 +1499,8 @@ document.addEventListener('click',e=>{
   const m=S.modal;if(!m)return;
   if(a==='scope-one'||a==='scope-from'){
     const scope=a==='scope-one'?'one':'from',t=T(m.id);if(!t)return;
-    if(m.op==='edit')editFormOf(t,scope);
+    if(m.op==='rem')modal({type:'remadd',id:t.id,scope});
+    else if(m.op==='edit')editFormOf(t,scope);
     else{closeModal();withUndo(scope==='from'?_('המשימות נמחקו'):_('המשימה נמחקה'),()=>deleteTask(t.id,scope));render()}
     return}
   if(a==='view-edit'){const t=T(m.id);if(!t)return;if(t.seriesId)modal({type:'scope',id:t.id,op:'edit'});else editFormOf(t,'one');return}
@@ -1466,6 +1515,8 @@ document.addEventListener('click',e=>{
   if(a==='cont-later'){(m.sids||[]).forEach(id=>S.dismissed.add(id));closeModal();return}
   if(a==='cont-choose'){m.choose=true;m.keep={};renderModal();return}
   if(a==='cont-set'){m.keep[el.dataset.sid]=el.dataset.v==='1';renderModal();return}
+  if(a==='ra-b'){remAdd(m.id,m.scope,{t:'before',m:+el.dataset.m});renderModal();return}
+  if(a==='ra-at'){const mid=m.id,sc=m.scope;openTimePicker('',v=>{if(v)remAdd(mid,sc,{t:'at',time:v});if(S.modal)renderModal()},{clear:null,title:_('שעת תזכורת')});return}
   if(a==='del-yes'){const i=m.id;closeModal();withUndo(_('המשימה נמחקה'),()=>deleteTask(i,'one'));render();return}
   /* הוספה מהירה */
   if(a==='q-time'){collectForm();openTimePicker(m.vals.time,v=>{m.vals.time=v;rerenderForm()});return}
@@ -2297,7 +2348,10 @@ const NEWS=[
   {id:'update',series:'0.6',ic:'🔄',t:'הודעה על גרסה חדשה',x:'כשיוצאת גרסה חדשה מופיעה למעלה הודעה, ולחיצה עליה מעדכנת את האפליקציה.'},
   {id:'slot',series:'0.7',ic:'🕐',t:'הקשה על שעה',x:'הקשה על מקום ריק בציר השעות מוסיפה משימה בשעה הזו, או משבצת בה משימה קיימת.'},
   {id:'quickmove',series:'0.7',ic:'⬅️',t:'העברה מהירה',x:'בתפריט ⋮ יש "למחר" ו"להיום", ובמסך היום כפתור שמעביר להיום את מה שהוחמץ אתמול.'},
-  {id:'hebcal',series:'0.7',ic:'🕎',t:'חגים בלוח',x:'בלוח מסומנים חגים ותאריך עברי, ובהגדרות ⚙️ אפשר לכבות אותם או להוסיף חודש עברי.'}
+  {id:'hebcal',series:'0.7',ic:'🕎',t:'חגים בלוח',x:'בלוח מסומנים חגים ותאריך עברי, ובהגדרות ⚙️ אפשר לכבות אותם או להוסיף חודש עברי.'},
+  {id:'agent',series:'2.0',ic:'🔔',t:'תזכורות גם כשהאפליקציה סגורה',x:'תזכורות למשימות מגיעות כהתראה, גם כשהאפליקציה סגורה, במכשירים שתומכים. מפעילים בהגדרות ⚙️ ← התראות. לחיצה על ההתראה פותחת את המשימה ומדגישה אותה.'},
+  {id:'agent2',series:'2.0',ic:'🤖',t:'סוכן המשימות',x:'בהגדרות ⚙️ ← סוכן המשימות: תזכורת מאוחרת למשימה שלא הושלמה (עם נודניק), שעות שקט, וסיכומי משימות בשעות שתבחרו.'},
+  {id:'remmenu',series:'2.0',ic:'⏰',t:'הוסף תזכורת מהתפריט',x:'בתפריט ⋮ של משימה: 5 או 15 דקות לפני, שעה לפני, בזמן המשימה או שעה לבחירתכם, בלי לפתוח את העריכה.'}
 ];
 const NEWS_SERIES=NEWS[NEWS.length-1].series;
 function newsLoad(){let n={};try{n=JSON.parse(lsGet('cal.news')||'{}')||{}}catch(e){n={}}if(!n.ack||typeof n.ack!=='object')n.ack={};return n}
@@ -2335,6 +2389,7 @@ function settingsClick(a,el,id,e){
   if(a==='push-on'){pushOn();return true}
   if(a==='push-off'){pushOff();return true}
   if(a==='push-test'){pushTest();return true}
+  if(agentClick(a,el))return true;
   return false;
 }
 function renderSettings(){
@@ -2351,6 +2406,7 @@ function renderSettings(){
    +'<section class="sgrp" aria-labelledby="sg3"><h2 id="sg3">'+_('שפה')+'</h2>'+seg('set-lang',PREFS.lang,[['he','עברית 🇮🇱'],['en','English 🇬🇧']])+'</section>'
    +'<section class="sgrp" aria-labelledby="sg7"><h2 id="sg7">'+_('לוח עברי')+'</h2>'+[['hol',_('חגים ומועדים')],['hdate',_('תאריך עברי בכל יום')],['hmonth',_('חודש עברי בכותרת')]].map(([k,l])=>'<button type="button" class="tgl" role="switch" aria-checked="'+!!PREFS[k]+'" data-act="set-tgl" data-k="'+k+'"><span>'+l+'</span><i aria-hidden="true"></i></button>').join('')+'</section>'
    +'<section class="sgrp" aria-labelledby="sg8"><h2 id="sg8">🔔 '+_('התראות')+'</h2>'+pushSettingsHtml()+'</section>'
+   +'<section class="sgrp" aria-labelledby="sg9"><h2 id="sg9">🤖 '+_('סוכן המשימות')+'</h2>'+agentSettingsHtml()+'</section>'
    +'<section class="sgrp" aria-labelledby="sg6"><h2 id="sg6">'+_('גיבוי')+'</h2><button type="button" class="gbtn wide" data-act="export">💾 '+_('ייצוא כל הנתונים לקובץ')+'</button><div class="note">'+_('נשמר קובץ עם כל המשימות, המשימות החוזרות, היעדים והעדכונים. מומלץ לשמור אותו מדי פעם במקום בטוח.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg4"><h2 id="sg4">'+_('התנתקות')+'</h2><button type="button" class="dbtn wide" data-act="logout">'+_('התנתק')+'</button><div class="note">'+_('ההתנתקות לא מוחקת משימות, יעדים או היסטוריה.')+'</div></section>'
    +'<section class="sgrp" aria-labelledby="sg5"><h2 id="sg5">'+_('מה חדש?')+'</h2>'+news+'</section>'
@@ -2373,7 +2429,7 @@ async function exportData(){
 }
 /* ===== התראות (Web Push): הרשמת המכשיר הנוכחי והתראת בדיקה =====
    המפתח הציבורי מגיע מהשרת (/api/push-config). ההרשמה נשמרת ב-users/{uid}/push_subs/{deviceId}, תחת החשבון המחובר בלבד.
-   במכשיר נשמר רק המזהה של ההרשמה ושל המשתמש (cal.push). אין כאן תזמון: תזכורות למשימות יגיעו בשלב מאוחר יותר */
+   במכשיר נשמר רק המזהה של ההרשמה ושל המשתמש (cal.push). התזכורות עצמן נשלחות מהשרת לפי push_jobs (למטה) */
 S.push={state:'unknown',busy:false,checking:false};
 const isIOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
@@ -2408,7 +2464,7 @@ function pushSettingsHtml(){
   if(st==='off')h+='<button type="button" class="gbtn wide" data-act="push-on"'+dis+'>'+_('הפעל התראות במכשיר הזה')+'</button>';
   if(st==='on')h+='<button type="button" class="gbtn wide" data-act="push-test"'+dis+'>'+_('שלח התראת בדיקה')+'</button><button type="button" class="gbtn wide" data-act="push-off"'+dis+'>'+_('כבה התראות במכשיר הזה')+'</button>';
   if((st==='on'||st==='off')&&!isMobile())h+='<div class="note">'+_('במחשב, התראות מגיעות רק כשהדפדפן פועל (גם ברקע).')+'</div>';
-  if(st==='on'||st==='off')h+='<div class="note">'+_('כרגע אפשר לשלוח רק התראת בדיקה. תזכורות למשימות יתחילו לפעול בשלב הבא.')+'</div>';
+  if(st==='on'||st==='off')h+='<div class="note">'+_('תזכורות למשימות נשלחות לכל המכשירים שבהם ההתראות פעילות, גם כשהאפליקציה סגורה.')+'</div>';
   if(S.pushSubs.length&&S.loaded.pj){const n=S.pushJobs.filter(j=>j.at>Date.now()).length;h+='<div class="note">'+_('תזכורות מתוכננות: {n}',{n})+'</div>'}
   return h;
 }
@@ -2464,10 +2520,16 @@ async function pushTest(){
   finally{S.push.busy=false;render()}
 }
 /* ===== תזכורות: רשימת זמני השליחה (push_jobs) =====
-   לכל תזכורת עתידית נשמר מסמך users/{uid}/push_jobs/{taskId}_{at} עם {at (רגע השליחה, ms), date (תאריך המשימה), time (שעת המשימה או ''), title (שם המשימה בלבד)}:
-   בלי פרטים, הערות או תתי־משימות (החלטת הלל 26/10: בהתראה מופיע שם המשימה). מזהה קבוע = אין כפילויות (גם כששתי תזכורות של אותה משימה נופלות באותו רגע).
-   הרשימה מחושבת מחדש מכל המשימות אחרי כל שינוי, מכל מכשיר, ולכן יצירה, עריכה, העברה, השלמה, מחיקה, שינוי תזכורת ומופעי סדרות מתעדכנים במקום אחד.
-   נשמרת רק כשלמשתמש יש לפחות מכשיר אחד עם התראות; בלי מכשירים הרשימה מתרוקנת. השליחה עצמה בשרת, בשלב מאוחר יותר */
+   האפליקציה מחשבת מראש מתי לשלוח כל התראה, והשרת ("סוכן המשימות") רק שולח את מה שהגיע זמנו. לסוכן אין גישה למשימות עצמן.
+   מסמך users/{uid}/push_jobs/{id}: {kind, at (רגע השליחה, ms), date (תאריך המשימה), time (שעת המשימה או ''), title (שם המשימה בלבד), tid (מזהה המשימה), sid (מזהה הסדרה או '')}.
+   בלי פרטים, הערות או תתי־משימות (החלטת הלל 26/10: בהתראה מופיע שם המשימה). מזהה קבוע = אין כפילויות.
+   סוגים (גרסה 2.0; מסמך ישן בלי kind = 'rem'):
+     'rem'    תזכורת רגילה, {tid}_{at}. בשעות השקט נדחית לסופן; "לפני המשימה" שכבר לא לפני המשימה לא נשלחת.
+     'late'   תזכורת מאוחרת, {tid}_late_{date}{HHMM}. אחת למשימה פתוחה עם שעה, אחרי זמן ההמתנה (לפי שעות השקט, אפשרות א או ב).
+     'snooze' נודניק, {tid}_snooze. נוצר מהאפליקציה (אחרי לחיצה על תזכורת מאוחרת) ונשמר כל עוד המשימה פתוחה.
+     'sum'    סיכום, sum_{at}, עם count (מספר המשימות שדורשות טיפול). רק כשיש כאלה.
+   ההעדפות (push_prefs/main) נקראות רק כאן, באפליקציה; השרת מקבל זמנים מוכנים.
+   הרשימה מחושבת מחדש מכל המשימות אחרי כל שינוי, מכל מכשיר. נשמרת רק כשלמשתמש יש לפחות מכשיר אחד עם התראות; בלי מכשירים הרשימה מתרוקנת */
 const PUSH_GRACE=15*60*1000; /* תזכורת שזמנה עבר לפני פחות מ-15 דקות נשארת ברשימה, כדי שהשרת עוד יספיק לשלוח אותה */
 /* ההפרש בין שעון ישראל ל-UTC ברגע מסוים (ms) */
 function tzOffset(ms){const p=_fmt.formatToParts(new Date(ms)),g=t=>+p.find(x=>x.type===t).value;return Date.UTC(g('year'),g('month')-1,g('day'),g('hour')%24,g('minute'))-Math.floor(ms/60000)*60000}
@@ -2481,36 +2543,273 @@ function ilEpoch(date,time){
   }
   return null;
 }
-/* מה צריך להיות ברשימה: משימות עם תאריך, שלא בוצעו, לא הועברו ולא כלליות, ורק תזכורות שזמנן עוד לא עבר (או עבר לפני פחות מ-15 דקות) */
-function pushJobsWanted(tasks,now){
-  const out={};
+/* רגע מוחלט (ms) → תאריך ושעה בשעון ישראל */
+function ilAt(ms){const p=_fmt.formatToParts(new Date(ms)),g=t=>p.find(x=>x.type===t).value;return {date:g('year')+'-'+g('month')+'-'+g('day'),time:pad(+g('hour')%24)+':'+g('minute')}}
+/* העדפות סוכן המשימות: users/{uid}/push_prefs/main, משותפות לכל המכשירים. כל השדות אופציונליים, ובלי מסמך = הכל כבוי */
+const AG_DEF={lateOn:false,lateM:120,quietOn:false,quietFrom:'23:00',quietTo:'08:00',quietMode:'count',sumTimes:[]};
+function agPrefs(pp){
+  const p={...AG_DEF,...(pp||S.pushPrefs||{})},hm=x=>/^\d{2}:\d{2}$/.test(x||'');
+  return {lateOn:p.lateOn===true,lateM:Math.max(5,Math.min(1439,Math.round(+p.lateM)||120)),quietOn:p.quietOn===true,quietFrom:hm(p.quietFrom)?p.quietFrom:'23:00',quietTo:hm(p.quietTo)?p.quietTo:'08:00',quietMode:p.quietMode==='end'?'end':'count',sumTimes:[...new Set((Array.isArray(p.sumTimes)?p.sumTimes:[]).filter(hm))].sort()};
+}
+/* שעות שקט: null כשהן כבויות (או כשההתחלה והסוף זהים) */
+function quietOf(p){return p.quietOn&&p.quietFrom!==p.quietTo?{from:p.quietFrom,to:p.quietTo,mode:p.quietMode}:null}
+/* אם הרגע ms נופל בשעות השקט: הרגע שבו הן נגמרות. אחרת null. כולל שעות שחוצות חצות (23:00–08:00) */
+function quietEnd(ms,q){
+  if(!q)return null;
+  const {date,time}=ilAt(ms);
+  if(q.from<q.to)return time>=q.from&&time<q.to?ilEpoch(date,q.to):null;
+  if(time>=q.from)return ilEpoch(addDays(date,1),q.to);
+  if(time<q.to)return ilEpoch(date,q.to);
+  return null;
+}
+const quietDefer=(ms,q)=>{const e=quietEnd(ms,q);return e===null?ms:e};
+/* זמן המתנה של min דקות מהרגע start, לפי שעות השקט.
+   'count' (אפשרות א) = סופרים רק זמן שמחוץ לשעות השקט, והיתרה ממשיכה אחריהן. משימה ב-22:00, שעתיים, שקט 23:00–08:00 → 09:00.
+   'end' (אפשרות ב) = אם הרגע נופל בשעות השקט, מיד בסופן */
+function quietAdd(start,min,q){
+  let rem=min*60000;
+  if(!q)return start+rem;
+  if(q.mode==='end')return quietDefer(start+rem,q);
+  let t=start;
+  for(let i=0;i<50;i++){
+    const e=quietEnd(t,q);if(e!==null){t=e;continue}
+    const d0=ilAt(t).date;let qs=Infinity;
+    for(let k=0;k<3&&qs===Infinity;k++){const x=ilEpoch(addDays(d0,k),q.from);if(x!==null&&x>t)qs=x}
+    if(t+rem<qs)return t+rem;
+    rem-=qs-t;t=qs;
+  }
+  return t+rem;
+}
+/* לסיכום: משימות של היום של הרגע at שעדיין דורשות טיפול: לא בוצעו, לא הועברו, ובלי שעה או ששעתן כבר הגיעה.
+   משימה כללית ששובצה להיום נספרת כמשימה של היום. משימות שהושלמו, נמחקו או ששעתן עוד לא הגיעה לא נספרות */
+function sumCount(tasks,at){
+  const d=ilAt(at).date;
+  return tasks.filter(t=>!t.general&&!t.done&&!t.movedTo&&t.date===d&&(!t.time||ilEpoch(d,t.time)<=at)).length;
+}
+const pushOpen=t=>!!t&&!t.general&&!t.done&&!t.movedTo&&isDate(t.date);
+/* מה צריך להיות ברשימה. pp = ההעדפות, jobs = המסמכים הקיימים (בשביל נודניק, שנוצר מהאפליקציה) */
+function pushJobsWanted(tasks,now,pp,jobs){
+  const p=agPrefs(pp||{}),q=quietOf(p),out={},keep=at=>at!==null&&at>now-PUSH_GRACE;
+  const info=t=>({date:t.date,time:t.time||'',title:String(t.title||'').slice(0,120),tid:t.id,sid:t.seriesId||''});
   for(const t of tasks){
-    if(t.general||t.done||t.movedTo||!isDate(t.date))continue;
+    if(!pushOpen(t))continue;
+    const start=t.time?ilEpoch(t.date,t.time):null,dayEnd=ilEpoch(addDays(t.date,1),'00:00');
     for(const r of reminderTimes(t)){
-      const at=ilEpoch(r.date,r.time);
-      if(at===null||at<=now-PUSH_GRACE)continue;
-      out[t.id+'_'+at]={at,date:t.date,time:t.time||'',title:String(t.title||'').slice(0,120)};
+      let at=ilEpoch(r.date,r.time);if(at===null)continue;
+      /* בשעות השקט: נדחית לסופן ונבדקת מחדש. "לפני המשימה" שאחרי הדחייה כבר לא לפני המשימה, או שעה מותאמת שעברה ליום אחר, לא נשלחת */
+      const d=quietDefer(at,q);
+      if(d!==at){if(d>(r.k==='before'&&start!==null?start:dayEnd))continue;at=d}
+      if(keep(at))out[t.id+'_'+at]={kind:'rem',at,...info(t)};
+    }
+    if(p.lateOn&&start!==null){
+      const at=quietAdd(start,p.lateM,q);
+      if(keep(at))out[t.id+'_late_'+t.date+t.time.replace(':','')]={kind:'late',at,...info(t)};
+    }
+  }
+  const byId=new Map(tasks.map(t=>[t.id,t]));
+  for(const j of jobs||[]){
+    if(j.kind!=='snooze')continue;
+    const t=byId.get(j.tid);
+    if(pushOpen(t)&&keep(j.at))out[j.id]={kind:'snooze',at:j.at,...info(t)};
+  }
+  if(p.sumTimes.length){
+    const today=ilAt(now).date,seen=new Set();
+    for(let k=0;k<7;k++)for(const tm of p.sumTimes){
+      let at=ilEpoch(addDays(today,k),tm);if(at===null)continue;
+      /* סיכומים שנופלים בשעות השקט מתאחדים לסיכום אחד, עדכני, בסופן */
+      at=quietDefer(at,q);
+      if(!keep(at)||seen.has(at))continue;seen.add(at);
+      const n=sumCount(tasks,at);
+      if(n)out['sum_'+at]={kind:'sum',at,date:ilAt(at).date,time:'',title:'',tid:'',sid:'',count:n};
     }
   }
   return out;
 }
-/* מה לכתוב: מסמכים חסרים נוצרים, מסמכים שהשתנו מתעדכנים (בלי לגעת בשדות שהשרת יוסיף), ומה שכבר לא צריך נמחק */
+/* מה לכתוב: מסמכים חסרים נוצרים, מסמכים שהשתנו מתעדכנים (בלי לגעת בשדות שהשרת מוסיף: sent, sentAt), ומה שכבר לא צריך נמחק */
+const PJ_FIELDS=['kind','at','date','time','title','tid','sid','count'];
 function pushJobsDiff(wanted,existing){
-  const ex=new Map(existing.map(j=>[j.id,j])),set=[],upd=[],del=[];
-  for(const id in wanted){const w=wanted[id],e=ex.get(id);if(!e)set.push([id,w]);else if(e.at!==w.at||e.date!==w.date||e.time!==w.time||e.title!==w.title)upd.push([id,w])}
+  const ex=new Map(existing.map(j=>[j.id,j])),set=[],upd=[],del=[],v=x=>x===undefined||x===null?'':x;
+  for(const id in wanted){const w=wanted[id],e=ex.get(id);if(!e)set.push([id,w]);else if(PJ_FIELDS.some(k=>v(e[k])!==v(w[k])))upd.push([id,w])}
   for(const e of existing)if(!Object.prototype.hasOwnProperty.call(wanted,e.id))del.push(e.id);
   return {set,upd,del};
 }
 let pushSyncT=0;
 function pushJobsSchedule(){clearTimeout(pushSyncT);pushSyncT=setTimeout(pushJobsSync,1200)}
 function pushJobsSync(){
-  if(!S.db||!S.loaded.t||!S.loaded.ps||!S.loaded.pj)return;
-  const d=pushJobsDiff(S.pushSubs.length?pushJobsWanted(S.tasks,Date.now()):{},S.pushJobs);
+  if(!S.db||!S.loaded.t||!S.loaded.ps||!S.loaded.pj||!S.loaded.pp)return;
+  const d=pushJobsDiff(S.pushSubs.length?pushJobsWanted(S.tasks,Date.now(),S.pushPrefs,S.pushJobs):{},S.pushJobs);
   d.set.forEach(([id,w])=>dbSet('push_jobs',id,w));
   d.upd.forEach(([id,w])=>dbUpd('push_jobs',id,w));
   d.del.forEach(id=>dbDel('push_jobs',id));
 }
-S.pushSubs=[];S.pushJobs=[];
+S.pushSubs=[];S.pushJobs=[];S.pushPrefs={};
+
+/* ===== הוספת תזכורת מתפריט ⋮ (בלי טופס העריכה) =====
+   לא מחליפה תזכורות קיימות, ובלי כפילות לאותו מועד. במשימה חוזרת, "מהיום והלאה" מוסיף אותה לכל מופע (כל אחד לרשימה שלו) ולסדרה.
+   משימה כללית נשארת כללית (בלי תאריך אין מתי להזכיר); משימה בלי שעה מקבלת רק שעה מותאמת */
+function remNote(){return S.loaded.ps&&!S.pushSubs.length?'<div class="note">'+_('כדי לקבל תזכורות כהתראה, הפעל התראות בהגדרות ⚙️ ← התראות.')+'</div>':''}
+/* המועד של תזכורת (תאריך ושעה), כדי לזהות שתי תזכורות שונות שנופלות באותו רגע */
+function remKey(x,r){if(r.t==='at')return (x.date||'')+' '+r.time;const n=toMin(x.time)-r.m;return n>=0?(x.date||'')+' '+fromMin(n):(x.date?addDays(x.date,-1):'-')+' '+fromMin(n+1440)}
+function remAdd(id,scope,r){
+  const t=T(id);if(!t||t.general||t.movedTo)return;
+  if(r.t==='before'&&!t.time)return;
+  const next=x=>{if(r.t==='before'&&!x.time)return null;const cur=remList(x),k=remKey(x,r);return cur.some(y=>remKey(x,y)===k)?null:remSort([...cur,r])};
+  let n=0;
+  withUndo(_('התזכורת נוספה'),()=>{
+    if(scope==='from'&&t.seriesId){
+      const from=t.date<todayIL()?todayIL():t.date;
+      S.tasks.filter(x=>x.seriesId===t.seriesId&&x.date>=from&&!x.movedTo).forEach(x=>{const l=next(x);if(l){updTask(x.id,{reminders:l});n++}});
+      const sr=S.series.find(x=>x.id===t.seriesId);if(sr){const l=next({...sr,date:''});if(l)updSeries(sr.id,{reminders:l})}
+    }else{const l=next(t);if(l){updTask(t.id,{reminders:l});n++}}
+    toast(n?_('התזכורת נוספה'):_('התזכורת הזו כבר קיימת'));
+  });
+  render();
+}
+function remAddHtml(t,m){
+  let b='<p class="note">«'+esc(t.title)+'»'+(t.general?'':' · '+esc(longDay(t.date))+(t.time?' · <span class="ltr">'+esc(t.time)+'</span>':''))+'</p>';
+  if(t.general)return b+'<p class="note">'+_('תזכורת אפשר להוסיף למשימה ששובצה ליום. משימה כללית נשארת כללית; כדי לקבל תזכורת, שבץ אותה ליום ואז הוסף תזכורת.')+'</p><div class="mfoot"><button type="button" class="pbtn" data-act="mclose">'+_('הבנתי')+'</button></div>';
+  const cur=remList(t);
+  const bt=(mm,l)=>{const on=cur.some(x=>x.t==='before'&&x.m===mm);return '<button type="button" data-act="ra-b" data-m="'+mm+'" aria-pressed="'+on+'"'+(on?' disabled':'')+'>'+(on?'✓ ':'')+l+'</button>'};
+  b+='<div class="remopts" role="group" aria-label="'+_('תזכורת')+'">';
+  if(t.time)b+=bt(5,'5 '+_('דקות לפני'))+bt(15,'15 '+_('דקות לפני'))+bt(60,_('שעה לפני'))+bt(0,_('בזמן המשימה')+' <small class="ltr">('+esc(t.time)+')</small>');
+  b+='<button type="button" data-act="ra-at">🕐 '+_('זמן מותאם אישית')+'</button></div>';
+  if(!t.time)b+='<p class="note">'+_('למשימה בלי שעה אפשר להוסיף תזכורת בשעה מסוימת ביום המשימה.')+'</p>';
+  if(cur.length)b+='<div class="note">'+esc(remText(cur))+'</div>';
+  if(m.scope==='from')b+='<p class="note">'+_('התזכורת תתווסף ליום הזה ולכל הימים הבאים.')+'</p>';
+  b+=remNote()+'<div class="mfoot"><button type="button" class="pbtn" data-act="mclose">'+_('סיום')+'</button></div>';
+  return b;
+}
+
+/* ===== פתיחה מהתראה: היום שבו המשימה נמצאת עכשיו, גלילה אליה והדגשה, ונודניק אחרי תזכורת מאוחרת =====
+   הכתובת שבהתראה: #n=<סוג>&d=<תאריך>&t=<מזהה משימה>&s=<מזהה סדרה>; בסיכום: #n=sum&d=<תאריך>.
+   המשימה נמצאת לפי המזהה, לא לפי השם. מופע של סדרה שהמזהה שלו כבר לא קיים: לפי סדרה ותאריך. משימה שהועברה: לפי שרשרת ההעברות.
+   משימה שלא קיימת: הודעה, בלי להדגיש משימה אחרת. ההדגשה חזותית בלבד ולא משנה נתונים */
+function notifTake(){
+  if(!/^#n=/.test(location.hash))return false;
+  const p=new URLSearchParams(location.hash.slice(1));
+  S.notif={k:p.get('n')||'',d:p.get('d')||'',t:p.get('t')||'',s:p.get('s')||''};
+  history.replaceState(null,'','#d='+(isDate(S.notif.d)?S.notif.d:todayIL()));
+  return true;
+}
+function notifFind(n){
+  let t=n.t?T(n.t):null;
+  if(!t&&n.s&&isDate(n.d))t=S.tasks.find(x=>x.seriesId===n.s&&x.date===n.d)||null;
+  if(t&&t.movedToId)t=chainEnd(t);
+  return t||null;
+}
+function notifRun(){
+  const n=S.notif;if(!n||!S.loaded.t||!S.loaded.s)return;
+  S.notif=null;
+  if(n.k==='sum'){history.replaceState(null,'','#d='+todayIL());S.autoScroll=true;route();sumScroll();return}
+  const t=notifFind(n);
+  if(!t){history.replaceState(null,'','#d='+(isDate(n.d)?n.d:todayIL()));route();toast(_('המשימה לא נמצאה. ייתכן שנמחקה.'));return}
+  history.replaceState(null,'','#d='+(t.general?todayIL():t.date));S.autoScroll=true;route();
+  if(t.general){S.dayUI.gen=true;S.dayUI.manual=true;render()}
+  hlStart(t.id);
+  if((n.k==='late'||n.k==='snooze')&&pushOpen(t)){S.snz={id:t.id};renderSnz()}
+}
+const cssId=s=>window.CSS&&CSS.escape?CSS.escape(s):String(s).replace(/["\\]/g,'\\$&');
+/* סיכום: היום הנוכחי, באזור המשימות שדורשות טיפול (הראשונה ששעתה עברה, או "ללא שעה") */
+function sumScroll(){
+  const d=todayIL(),now=Date.now();
+  const od=S.tasks.filter(t=>!t.general&&t.date===d&&!t.done&&!t.movedTo&&t.time&&ilEpoch(d,t.time)<=now).sort(cmpT)[0];
+  const el=od?document.querySelector('#app .tk[data-id="'+cssId(od.id)+'"]'):$('#ntn');
+  if(el)el.scrollIntoView({block:od?'center':'start'});
+}
+const HL_MS=3000;let hlT=0;
+function hlStart(id){S.hl={id,t0:Date.now()};clearTimeout(hlT);hlT=setTimeout(hlStop,HL_MS);hlApply(true)}
+function hlStop(){S.hl=null;clearTimeout(hlT);document.querySelectorAll('.tk.hl').forEach(e=>e.classList.remove('hl'))}
+/* אחרי ציור מחדש ההדגשה ממשיכה מאותה נקודה (animation-delay שלילי), כדי שלא תתחיל מההתחלה */
+function hlApply(scroll){
+  const h=S.hl;if(!h)return;
+  const el=document.querySelector('#app .tk[data-id="'+cssId(h.id)+'"]');if(!el)return;
+  el.style.animationDelay=(-(Date.now()-h.t0)/1000)+'s';el.classList.add('hl');
+  if(scroll)el.scrollIntoView({block:'center'});
+}
+/* לחיצה על המשימה בזמן ההדגשה: ההבהוב נעצר מיד, והלחיצה ממשיכה כרגיל */
+document.addEventListener('pointerdown',e=>{if(S.hl&&e.target.closest&&e.target.closest('.tk.hl'))hlStop()},true);
+
+/* ===== נודניק: תזכורת נוספת לאותה משימה בלבד =====
+   מסמך אחד קבוע לכל משימה ({id}_snooze), כך שכל דחייה מחליפה את הקודמת. אפשר לדחות שוב ושוב, עד שהמשימה הושלמה, נמחקה או הועברה.
+   כפתורי פעולה בתוך ההתראה לא נתמכים בכל המכשירים, ולכן הבחירה מוצגת כאן, אחרי לחיצה על ההתראה */
+function renderSnz(){
+  const root=$('#snzRoot');if(!root)return;
+  const t=S.snz&&T(S.snz.id);
+  if(S.snz&&!pushOpen(t))S.snz=null;
+  const h=S.snz?'<div class="snzcard" role="dialog" aria-label="'+_('נודניק')+'"><div class="snzh"><span aria-hidden="true">⏰</span><b>'+esc(t.title)+'</b><button type="button" class="xbtn" data-act="snz-x" aria-label="'+_('סגירה')+'">✕</button></div><div class="note">'+_('עדיין פתוחה. להזכיר שוב בעוד:')+'</div><div class="seg">'+[[10,'10 '+_('דק׳')],[30,'30 '+_('דק׳')],[60,_('שעה¦h')]].map(([mm,l])=>'<button type="button" data-act="snz" data-m="'+mm+'">'+l+'</button>').join('')+'<button type="button" data-act="snz-c">'+_('מותאם')+'</button></div></div>':'';
+  if(root._h!==h){root.innerHTML=h;root._h=h}
+}
+function snooze(mm){
+  const t=S.snz&&T(S.snz.id);S.snz=null;renderSnz();
+  if(!pushOpen(t))return;
+  if(!S.pushSubs.length){toast(_('אין מכשירים עם התראות פעילות.'));return}
+  const at=quietAdd(Date.now(),mm,quietOf(agPrefs())),id=t.id+'_snooze';
+  const doc={kind:'snooze',at,date:t.date,time:t.time||'',title:String(t.title||'').slice(0,120),tid:t.id,sid:t.seriesId||'',sent:false};
+  const i=S.pushJobs.findIndex(j=>j.id===id);if(i>=0)S.pushJobs[i]={id,...doc};else S.pushJobs.push({id,...doc});
+  dbSet('push_jobs',id,doc);
+  const w=ilAt(at);toast(_('תזכורת נוספת ב־{t}',{t:(w.date===todayIL()?'':dm(w.date)+' ')+w.time}));
+}
+
+/* ===== בורר השעות: הערך שבמרכז הגלגל הוא תמיד הערך הנבחר =====
+   הקשה על ערך בוחרת אותו ומגלגלת אותו למרכז (בלי לצייר מחדש). גלילה באצבע או בעכבר: כשהיא נעצרת, הערך שבמרכז נבחר */
+function tpSel(col,v,scroll){
+  const p=S.pick;if(!p||p.type!=='time')return;
+  if(col==='h')p.h=v;else p.m=v;
+  const c=$(col==='h'?'#tc_h':'#tc_m');if(!c)return;
+  c.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===v));
+  const d=$('.tpd');if(d)d.textContent=pad(p.h)+' : '+pad(p.m);
+  const on=c.querySelector('.on');if(scroll&&on)c.scrollTo({top:on.offsetTop-c.clientHeight/2+on.offsetHeight/2,behavior:'smooth'});
+}
+function tpMid(c){const mid=c.scrollTop+c.clientHeight/2;let best=null,bd=1e9;c.querySelectorAll('button').forEach(b=>{const x=Math.abs(b.offsetTop+b.offsetHeight/2-mid);if(x<bd){bd=x;best=b}});return best}
+/* לפני "אישור": אם הגלילה עוד לא נעצרה, לוקחים את מה שבמרכז ברגע זה */
+function tpSync(){['h','m'].forEach(k=>{const c=$(k==='h'?'#tc_h':'#tc_m'),b=c&&tpMid(c);if(b&&!b.classList.contains('on'))tpSel(k,+b.dataset.v,false)})}
+let tpT=0;
+document.addEventListener('scroll',e=>{
+  const c=e.target;
+  if(!S.pick||S.pick.type!=='time'||!c||!c.classList||!c.classList.contains('tcol'))return;
+  clearTimeout(tpT);tpT=setTimeout(()=>{const b=tpMid(c);if(b)tpSel(c.id==='tc_h'?'h':'m',+b.dataset.v,true)},120);
+},true);
+
+/* ===== הגדרות סוכן המשימות: תזכורת מאוחרת, שעות שקט, סיכומי משימות =====
+   נשמרות ב-push_prefs/main (משותפות לכל המכשירים), ומשפיעות רק על רשימת push_jobs שהאפליקציה מחשבת */
+function setAgent(p){S.pushPrefs={...agPrefs(),...p};dbSet('push_prefs','main',S.pushPrefs);render();pushJobsSchedule()}
+function agentSettingsHtml(){
+  const p=agPrefs();
+  const tg=(act,on,l)=>'<button type="button" class="tgl" role="switch" aria-checked="'+on+'" data-act="'+act+'"><span>'+l+'</span><i aria-hidden="true"></i></button>';
+  const sb=(act,v,on,l)=>'<button type="button" data-act="'+act+'" data-v="'+v+'" class="'+(on?'on':'')+'" aria-pressed="'+on+'">'+l+'</button>';
+  let h='<div class="note">'+(S.pushSubs.length?_('ההגדרות כאן משותפות לכל המכשירים שלך.'):_('ההגדרות כאן משותפות לכל המכשירים שלך, ופועלות במכשירים שבהם הפעלת התראות.'))+'</div>';
+  h+='<div class="agsub"><h3>⏳ '+_('תזכורת מאוחרת')+'</h3>'+tg('ag-late',p.lateOn,_('להזכיר כשמשימה עם שעה עדיין לא הושלמה'));
+  if(p.lateOn){
+    const std=[30,60,120].includes(p.lateM);
+    h+='<div class="seg" role="group" aria-label="'+_('תזכורת מאוחרת')+'">'+sb('ag-late-m',30,p.lateM===30,'30 '+_('דק׳'))+sb('ag-late-m',60,p.lateM===60,_('שעה¦h'))+sb('ag-late-m',120,p.lateM===120,_('שעתיים'))+sb('ag-late-c','',!std,std?_('מותאם'):'<span class="ltr">'+fromMin(p.lateM)+'</span>')+'</div>';
+    h+='<div class="note">'+_('תזכורת אחת אחרי שעת המשימה, אם עדיין לא סימנת אותה כבוצעה. אחרי ההתראה אפשר לבקש נודניק. משימה בלי שעה לא מקבלת תזכורת כזו.')+'</div>';
+  }
+  h+='</div><div class="agsub"><h3>🌙 '+_('שעות שקט')+'</h3>'+tg('ag-q',p.quietOn,_('בלי התראות בשעות השקט'));
+  if(p.quietOn){
+    h+='<div class="agrow"><span class="fl">'+_('משעה')+'</span><button type="button" class="fbtn ltr" data-act="ag-q-from">'+esc(p.quietFrom)+'</button><span class="fl">'+_('עד שעה')+'</span><button type="button" class="fbtn ltr" data-act="ag-q-to">'+esc(p.quietTo)+'</button></div>';
+    if(p.quietFrom===p.quietTo)h+='<div class="note">'+_('שעת ההתחלה והסיום זהות, ולכן אין שעות שקט.')+'</div>';
+    h+='<div class="note">'+_('בחר אם להמשיך לספור את זמן ההמתנה לאחר שעות השקט, או לקבל תזכורת מיד כשהן מסתיימות.')+'</div>';
+    h+='<div class="seg" role="group" aria-label="'+_('שעות שקט')+'">'+sb('ag-q-mode','count',p.quietMode!=='end',_('להמשיך לספור אחרי השקט'))+sb('ag-q-mode','end',p.quietMode==='end',_('להזכיר מיד בסיום השקט'))+'</div>';
+    h+='<div class="note">'+_('תזכורת רגילה שנופלת בשעות השקט נשלחת כשהן נגמרות, אם המשימה עדיין רלוונטית.')+'</div>';
+  }
+  h+='</div><div class="agsub"><h3>📋 '+_('סיכומי משימות')+'</h3><div class="note">'+_('בכל שעה שתבחר תגיע התראה אחת עם מספר המשימות שעדיין דורשות טיפול היום, רק אם יש כאלה.')+'</div>';
+  if(p.sumTimes.length)h+='<div class="rchips">'+p.sumTimes.map(x=>'<span class="chip"><span class="ltr">'+esc(x)+'</span><button type="button" data-act="ag-sum-del" data-v="'+esc(x)+'" aria-label="'+_('הסרה')+' '+esc(x)+'">✕</button></span>').join('')+'</div>';
+  h+='<button type="button" class="gbtn wide" data-act="ag-sum-add" style="margin-top:8px">＋ '+_('הוסף שעת סיכום')+'</button></div>';
+  return h;
+}
+function agentClick(a,el){
+  const p=agPrefs();
+  if(a==='ag-late'){setAgent({lateOn:!p.lateOn});return true}
+  if(a==='ag-late-m'){setAgent({lateM:+el.dataset.v});return true}
+  if(a==='ag-late-c'){openTimePicker(fromMin(p.lateM),v=>{const mm=v?toMin(v):0;if(mm>=5)setAgent({lateM:mm});else if(v)toast(_('זמן ההמתנה הקצר ביותר הוא 5 דקות.'))},{clear:null,title:_('זמן המתנה (שעות:דקות)')});return true}
+  if(a==='ag-q'){setAgent({quietOn:!p.quietOn});return true}
+  if(a==='ag-q-from'||a==='ag-q-to'){const k=a==='ag-q-from'?'quietFrom':'quietTo';openTimePicker(p[k],v=>{if(v)setAgent({[k]:v})},{clear:null,title:a==='ag-q-from'?_('תחילת שעות השקט'):_('סוף שעות השקט')});return true}
+  if(a==='ag-q-mode'){setAgent({quietMode:el.dataset.v==='end'?'end':'count'});return true}
+  if(a==='ag-sum-add'){openTimePicker('',v=>{if(!v)return;const l=agPrefs().sumTimes;if(l.includes(v)){toast(_('השעה הזו כבר ברשימה.'));return}setAgent({sumTimes:[...l,v].sort()})},{clear:null,title:_('שעת סיכום')});return true}
+  if(a==='ag-sum-del'){setAgent({sumTimes:p.sumTimes.filter(x=>x!==el.dataset.v)});return true}
+  return false;
+}
+
 /* ===== גרסה חדשה: בודקים בשקט מדי פעם אם באתר יש גרסה אחרת, ומציעים לעדכן בלחיצה ===== */
 let verLast=-1e9,verShown='';
 async function checkVersion(){
@@ -2578,13 +2877,14 @@ function boot(){
 function start(db){
   S.db=db;
   const bad=e=>{console.error('db',e);S.loadErr=true;render()};
-  db.collection('cal_series').onSnapshot(sn=>{S.series=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.s=true;render();checkSeries()},bad);
+  db.collection('cal_series').onSnapshot(sn=>{S.series=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.s=true;render();checkSeries();notifRun()},bad);
   /* יעדים: ההאזנה לא חוסמת את שאר האפליקציה, ושגיאה בה לא דורסת את המסך */
   db.collection('cal_goals').onSnapshot(sn=>{S.goals=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.g=true;render()},e=>{console.error('goals',e);S.loaded.g=true;render()});
   db.collection('cal_goal_log').onSnapshot(sn=>{S.glog=sn.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.error('goal log',e));
-  db.collection('cal_tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();checkSeries();setTimeout(maybeNews,900);pushJobsSchedule()},bad);
+  db.collection('cal_tasks').onSnapshot(sn=>{S.tasks=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.t=true;render();checkSeries();setTimeout(maybeNews,900);pushJobsSchedule();notifRun()},bad);
   /* התראות: המכשירים הרשומים ורשימת זמני השליחה. שגיאה כאן לא חוסמת את האפליקציה */
   db.collection('push_subs').onSnapshot(sn=>{S.pushSubs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.ps=true;pushJobsSchedule()},e=>console.error('push subs',e));
+  db.collection('push_prefs').onSnapshot(sn=>{const d=sn.docs.find(x=>x.id==='main');S.pushPrefs=d?{...d.data()}:{};S.loaded.pp=true;if(S.view==='settings')render();pushJobsSchedule()},e=>{console.error('push prefs',e);S.loaded.pp=true;pushJobsSchedule()});
   db.collection('push_jobs').onSnapshot(sn=>{S.pushJobs=sn.docs.map(d=>({id:d.id,...d.data()}));S.loaded.pj=true;if(S.view==='settings')render();pushJobsSchedule()},e=>console.error('push jobs',e));
 }
 boot();

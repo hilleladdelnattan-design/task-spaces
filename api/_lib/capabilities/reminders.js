@@ -1,10 +1,15 @@
 /* יכולת "התראות" של סוכן המשימות.
-   1. מוצאת תזכורות שהגיע זמנן: push_jobs של כל המשתמשים עם now-15min < at <= now, שעוד לא סומנו "נשלח".
-   2. "תופסת" כל תזכורת לפני השליחה: מסמנת sent:true בתנאי שהמסמך לא השתנה מאז שנקרא (updateTime).
+   1. מוצאת התראות שהגיע זמנן: push_jobs של כל המשתמשים עם now-15min < at <= now, שעוד לא סומנו "נשלח".
+   2. "תופסת" כל אחת לפני השליחה: מסמנת sent:true בתנאי שהמסמך לא השתנה מאז שנקרא (updateTime).
       אם שתי הפעלות רצות במקביל, רק אחת מצליחה לתפוס, ולכן אין התראה כפולה.
-   3. שולחת לכל המכשירים של בעל התזכורת: כותרת = שם המשימה בלבד, תוכן = היום/מחר + שעה. הקשה פותחת את היום של המשימה.
+   3. שולחת לכל המכשירים של בעל ההתראה. לפי kind:
+      'rem' (או בלי kind, מסמך ישן) תזכורת: כותרת = שם המשימה בלבד, תוכן = היום/מחר/תאריך + שעה.
+      'late' תזכורת מאוחרת ו-'snooze' נודניק: אותה כותרת, ותוכן "עדיין פתוחה" / "תזכורת חוזרת" + מתי.
+      'sum' סיכום: "נותרו לך N משימות שדורשות טיפול".
+      הקשה פותחת את המשימה המדויקת (#n=...&t=<מזהה>), ובסיכום את היום הנוכחי.
    4. מוחקת הרשמה שהמכשיר כבר לא מכיר (404/410).
-   הזמנים נשמרו בידי האפליקציה כרגע מוחלט (UTC, לפי שעון ישראל כולל קיץ/חורף), כך שכאן אין חישובי שעון */
+   הזמנים, כולל שעות שקט, תזכורת מאוחרת וסיכומים, חושבו מראש באפליקציה כרגע מוחלט (לפי שעון ישראל כולל קיץ/חורף).
+   לכן הסוכן לא קורא משימות או העדפות, ואין כאן חישובי שעון */
 const webpush = require('web-push');
 const { PROJECT_ID, vapid } = require('../config');
 const { runQuery, claimDoc, listDocs, deleteDoc } = require('../google');
@@ -14,13 +19,31 @@ const WINDOW = 15 * 60 * 1000; // תזכורת באיחור של עד 15 דקו�
 const MAX_PER_RUN = 200;
 const ilDate = (ms) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
 
+function when(job, en, now) {
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(job.date || '') ? job.date : '';
+  const day = !d ? '' : d === ilDate(now) ? (en ? 'Today' : 'היום') : d === ilDate(now + 864e5) ? (en ? 'Tomorrow' : 'מחר') : d === ilDate(now - 864e5) ? (en ? 'Yesterday' : 'אתמול') : String(+d.slice(8, 10)) + '/' + String(+d.slice(5, 7));
+  return job.time ? (en ? (day ? day + ' at ' : '') + job.time : (day ? day + ' ב-' : '') + job.time) : day;
+}
 function message(job, lang, now) {
-  const en = lang === 'en';
-  const day = job.date === ilDate(now) ? (en ? 'Today' : 'היום') : job.date === ilDate(now + 864e5) ? (en ? 'Tomorrow' : 'מחר') : String(+job.date.slice(8, 10)) + '/' + String(+job.date.slice(5, 7));
-  return {
-    title: job.title || (en ? 'Task reminder' : 'תזכורת למשימה'),
-    body: job.time ? (en ? day + ' at ' + job.time : day + ' ב-' + job.time) : (en ? day : day),
-  };
+  const en = lang === 'en', kind = job.kind || 'rem';
+  if (kind === 'sum') {
+    const n = +job.count || 0;
+    return {
+      title: en ? 'Task summary' : 'סיכום משימות',
+      body: en ? (n === 1 ? 'You have 1 task that needs attention' : 'You have ' + n + ' tasks that need attention') : (n === 1 ? 'נותרה לך משימה אחת שדורשת טיפול' : 'נותרו לך ' + n + ' משימות שדורשות טיפול'),
+    };
+  }
+  const title = job.title || (en ? 'Task reminder' : 'תזכורת למשימה'), w = when(job, en, now);
+  if (kind === 'late') return { title, body: (en ? 'Still open' : 'עדיין פתוחה') + (w ? ' · ' + w : '') };
+  if (kind === 'snooze') return { title, body: (en ? 'Reminder again' : 'תזכורת חוזרת') + (w ? ' · ' + w : '') };
+  return { title, body: w };
+}
+/* לאן ההקשה מובילה: המשימה המדויקת לפי המזהה שלה (ולא לפי השם). מסמך ישן בלי tid: המזהה הוא {tid}_{at} */
+function link(job) {
+  const d = job.data, kind = d.kind || 'rem', e = encodeURIComponent;
+  if (kind === 'sum') return '/cal.html#n=sum&d=' + e(d.date || '');
+  const tid = d.tid || job.id.replace(/_\d+$/, '');
+  return '/cal.html#n=' + e(kind) + '&d=' + e(d.date || '') + '&t=' + e(tid) + (d.sid ? '&s=' + e(d.sid) : '');
 }
 
 async function run({ token, now, dryRun }) {
@@ -48,10 +71,10 @@ async function run({ token, now, dryRun }) {
     out.claimed++;
     let subs = subsByUser.get(uid);
     if (!subs) { subs = (await listDocs(token, PROJECT_ID, 'users/' + uid + '/push_subs')).filter(usableSub); subsByUser.set(uid, subs); }
-    if (!subs.length) { out.notSent++; continue; }
+    if (!subs.length || (job.data.kind === 'sum' && !(+job.data.count > 0))) { out.notSent++; continue; }
     await Promise.all(subs.map(async (s) => {
       const m = message(job.data, s.lang, now);
-      const payload = JSON.stringify({ title: m.title, body: m.body, url: '/cal.html#d=' + job.data.date, tag: 'job-' + job.id });
+      const payload = JSON.stringify({ title: m.title, body: m.body, url: link(job), tag: job.data.kind === 'sum' ? 'sum' : 'job-' + job.id });
       try {
         await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.keys.p256dh, auth: s.keys.auth } }, payload, { TTL: 3600, urgency: 'high' });
         out.sent++;
