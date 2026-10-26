@@ -1,5 +1,5 @@
 /* בדיקת מצב: האם השרת עלה, ואילו הגדרות קיימות. מחזיר רק כן/לא לכל הגדרה, לעולם לא את הערכים עצמם */
-const { vapid, serviceAccount, cronSecret } = require('./_lib/config');
+const { vapid, cronSecret } = require('./_lib/config');
 const { send } = require('./_lib/http');
 
 module.exports = (req, res) => {
@@ -8,6 +8,6 @@ module.exports = (req, res) => {
     ok: true,
     service: 'task-spaces-push',
     stage: 1,
-    configured: { vapid: !!vapid(), serviceAccount: !!serviceAccount(), cronSecret: !!cronSecret() },
+    configured: { vapid: !!vapid(), cronSecret: !!cronSecret() },
   }, cpu0);
 };

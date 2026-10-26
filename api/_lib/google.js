@@ -1,36 +1,8 @@
-/* גישה ל-Google בלי ספריות כבדות (כדי לחסוך CPU):
+/* גישה ל-Google בלי ספריות כבדות (כדי לחסוך CPU), ובלי Admin SDK ובלי Service Account:
    1. אימות Firebase ID Token של משתמש מחובר (חתימה, פרויקט, תוקף).
-   2. טוקן גישה ל-Firestore בעזרת Service Account (שמור לשלב התזמון; עדיין לא בשימוש, וגישת השרת עוד לא הוחלטה).
-   3. קריאה ומחיקה של מסמכים ב-Firestore דרך REST. ה-bearer הוא ה-ID Token של המשתמש עצמו,
-      כך שכללי האבטחה של Firestore חלים והשרת רואה רק את מה שהמשתמש רשאי לראות. */
+   2. קריאה ומחיקה של מסמכים ב-Firestore דרך REST. ה-bearer הוא תמיד ID Token של משתמש Firebase,
+      ולכן כללי האבטחה של Firestore חלים, והשרת רואה רק את מה שהמשתמש הזה רשאי לראות. */
 const crypto = require('crypto');
-
-const b64u = (b) => Buffer.from(b).toString('base64url');
-
-/* ===== טוקן גישה של ה-Service Account ===== */
-let accessTok = null;
-async function accessToken(sa) {
-  const now = Math.floor(Date.now() / 1000);
-  if (accessTok && accessTok.exp - 60 > now) return accessTok.value;
-  const head = b64u(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const claims = b64u(JSON.stringify({
-    iss: sa.client_email,
-    scope: 'https://www.googleapis.com/auth/datastore',
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
-  }));
-  const sig = b64u(crypto.sign('RSA-SHA256', Buffer.from(head + '.' + claims), sa.private_key));
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: 'grant_type=' + encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer') + '&assertion=' + head + '.' + claims + '.' + sig,
-  });
-  if (!r.ok) throw new Error('service account token: HTTP ' + r.status);
-  const j = await r.json();
-  accessTok = { value: j.access_token, exp: now + (j.expires_in || 3600) };
-  return accessTok.value;
-}
 
 /* ===== אימות Firebase ID Token ===== */
 const JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
@@ -119,4 +91,4 @@ async function deleteDoc(bearer, projectId, path) {
   if (!r.ok && r.status !== 404) throw new Error('firestore delete: HTTP ' + r.status);
 }
 
-module.exports = { verifyIdToken, listDocs, deleteDoc, accessToken };
+module.exports = { verifyIdToken, listDocs, deleteDoc };
